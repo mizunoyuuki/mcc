@@ -58,6 +58,13 @@ Node *new_node_num(int val){
 	return node;
 }
 
+// 関数の宣言
+Node *mul();
+Node *primary();
+bool consume(char);
+void expect(char);
+int expect_number();
+
 Node *expr(){
 	Node *node = mul();
 
@@ -94,6 +101,37 @@ Node *primary(){
 	}
 
 	return new_node_num(expect_number());
+}
+
+void gen (Node *node){
+	if (node->kind == ND_NUM){
+		printf("    push %d\n", node->val);
+		return;
+	}
+
+	gen(node->lhs);
+	gen(node->rhs);
+
+	printf("    pop rdi\n");
+	printf("    pop rax\n");
+
+	switch(node->kind) {
+		case ND_ADD:
+			printf("    add rax, rdi\n");
+			break;
+		case ND_SUB:
+			printf("    sub rax, rdi\n");
+			break;
+		case ND_MUL:
+			printf("    imul rax, rdi\n");
+			break;
+		case ND_DIV:
+			printf("    cqo\n");
+			printf("    idiv rdi\n");
+			break;
+	}
+
+	printf("    push rax\n");
 }
 
 /* *******************  抽象構文木の再帰下降構文木   ******************** */
@@ -185,23 +223,16 @@ int main(int argc, char *argv[]){
 	}
 
 	token = tokenize(argv[1]);
+	Node *node = expr();
 
 	printf(".intel_syntax noprefix\n");
 	printf(".globl main\n");
 	printf("main: \n");
 
-	printf("    mov rax, %d\n", expect_number());
+	gen(node);
 
-	while (!at_eof()) {
-		if (consume('+')){
-			printf("    add rax, %d\n", expect_number());
-			continue;
-		}
-
-		expect('-');
-		printf("    sub rax, %d\n", expect_number());
-	}
-
+	printf("    pop rax\n");
 	printf("    ret\n");
+
 	return 0;
 }
