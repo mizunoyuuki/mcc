@@ -1,3 +1,4 @@
+#include"mcc.h"
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs){
 	Node *node = calloc(1, sizeof(Node));
 	node->kind = kind;
@@ -55,7 +56,7 @@ Node *relational(){
 			node = new_node(ND_LE, node, add());
 		else if (consume(">="))
 			node = new_node(ND_GE, node, add());
-		else 
+		else
 			return node;
 	}
 };
@@ -120,7 +121,7 @@ bool consume(char *op){
 // 次のトークンが期待している記号の時には、トークンを一つ読み進める。
 // それ以外の場合にはエラーを報告する。
 void expect(char *op){
-	if (token->kind != TK_RESERVED || token->len != strlen(op) || memcmp(token->str, op, token->len)) 
+	if (token->kind != TK_RESERVED || token->len != strlen(op) || memcmp(token->str, op, token->len))
 		error("'%c'ではありません。", op);
 	token = token->next;
 }
@@ -138,4 +139,3 @@ int expect_number() {
 bool at_eof(){
 	return token->kind == TK_EOF;
 }
-
