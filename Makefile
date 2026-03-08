@@ -1,6 +1,11 @@
 CFLAGS=-std=c11 -g -static
+SRCS=main.c tokenizer.c parser.c generator.c util.c
+OBJS=$(SRCS:.c=.o)
 
-9cc: 9cc.c
+9cc: $(OBJS)
+	$(CC) -o 9cc $(OBJS) $(LDFLAGS)
+
+$(OBJS): mcc.h
 
 test: 9cc
 	./test.sh
