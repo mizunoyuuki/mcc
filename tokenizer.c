@@ -14,7 +14,10 @@ bool startswith(char *p, char *q){
         return memcmp(p, q, strlen(q)) == 0;
 }
 
-//
+bool is_alphabet(char p){
+	return (p >= 'a' && p <= 'z') || (p >= 'A' && p <= 'Z');
+}
+
 // 入力文字列pをトークナイズしてそれを返す。
 Token *tokenize(char *p){
 	Token head;
@@ -40,8 +43,16 @@ Token *tokenize(char *p){
 			continue;
 		}
 
-		if (*p >= 'a' && *p <= 'z'){
-			cur = new_token(TK_IDENT, cur, p++, 1);
+		if (is_alphabet(*p)){
+			char *q = p;
+			int len = 0;
+
+	                while (is_alphabet(*p)){
+				p++;
+				len += 1;
+			}
+
+			cur = new_token(TK_IDENT, cur, q, len);
 			continue;
 		}
 

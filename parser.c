@@ -26,6 +26,10 @@ Node *new_node_num(int val){
 // mul        = unary ("*" unary | "/" unary)*
 // unary      = ("+" | "-")? primary
 // primary    = num | ident | "(" expr ")"
+//
+// identを使った
+// ident = ident | num;
+// ident = num + ident;
 
 // 関数の宣言
 Node *stmt();
@@ -41,6 +45,7 @@ bool consume(char*);
 void expect(char*);
 int expect_number();
 bool at_eof();
+LVar *find_lvar(Token *);
 
 Token *consume_ident(void);
 
@@ -152,13 +157,34 @@ Node *primary(){
 	if (tok){
 		Node *node = calloc(1, sizeof(Node));
 		node->kind = ND_LVAR;
-		node->offset = (tok->str[0] - 'a' + 1) * 8;
+
+		LVar *lvar = find_lvar(tok);
+		if (lvar){
+			node->offset = lvar->offset;
+		} else {
+			lvar = calloc(1, sizeof(LVar));
+			lvar->next = locals;
+			lvar->name = tok->str;
+			lvar->len = tok->len;
+			lvar->offset = locals ? locals->offset + 8 : 8;
+			node->offset = lvar->offset;
+			locals = lvar;
+		}
 		return node;
 	}
 
 	return new_node_num(expect_number());
 }
 
+// 変数を名前で検索する。見つからなかったらNULLを返す。
+LVar *find_lvar(Token *tok){
+	for (LVar *var = locals; var; var = var->next){
+		if (var->len == tok->len &&  !memcmp(tok->str, var->name, var->len))
+			return var;
+	}
+
+	return NULL;
+}
 
 // 次のトークンが期待している記号の時は、トークンを一つ読み進める。
 // 真を返す。それ以外の場合は偽を返す。
