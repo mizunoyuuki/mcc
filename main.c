@@ -18,6 +18,7 @@ void program(void);
 // 現在のtokenの外部変数
 Token *token;
 Node *code[100];
+LVar *locals;
 
 int main(int argc, char *argv[]){
         if (argc != 2){

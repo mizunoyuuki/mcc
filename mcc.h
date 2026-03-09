@@ -25,6 +25,7 @@ struct Token {
 	int len;
 };
 
+// Node型のNodeKindの列挙型
 typedef enum {
 	ND_ADD,  // +
 	ND_SUB,  // -
@@ -41,6 +42,7 @@ typedef enum {
 	ND_NUM,  // 整数
 } NodeKind;
 
+// Node型
 typedef struct Node Node;
 
 struct Node {
@@ -51,7 +53,20 @@ struct Node {
         int offset;    // kindがND_LVARの場合のみ使う
 };
 
+// LVar型 ローカル変数の型
+typedef struct LVar LVar;
+
+struct LVar {
+	LVar *next;   // 次の変数かNULL
+	char *name;   // 変数名
+	int len;      // 変数の長さ
+	int offset;   // RBPからアクセスするためのオフセット値
+};
+
+
+// 外部変数の宣言
 extern Token *token;
 extern Node *code[100];
+extern LVar *locals;
 
 extern void error(char*, ...);

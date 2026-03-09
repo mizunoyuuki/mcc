@@ -36,4 +36,8 @@ assert 2 '12-12;13-11;'
 assert 11 'a=12;a-1;'
 assert 12 'a=15;b=a-3;b;'
 assert 10 'a = 11; b = 1; a-b;'
+assert 10 'abc = 23; def = 10; def = 13; abc - def;'
+assert 23 'abc = 23; def = 10; def = 13; abc;'
+assert 13 'abc = 23; def = 10; def = 13; def;'
+
 echo OK
