@@ -35,4 +35,5 @@ assert 0 '12   <  11;'
 assert 2 '12-12;13-11;'
 assert 11 'a=12;a-1;'
 assert 12 'a=15;b=a-3;b;'
+assert 10 'a = 11; b = 1; a-b;'
 echo OK

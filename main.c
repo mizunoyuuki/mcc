@@ -50,7 +50,7 @@ int main(int argc, char *argv[]){
 
 	// エピローグ
 	// 最後の式の結果がRAXに残っているので、それが返り血になる
-	printf("mov rsp, rbp\n");
+	printf("    mov rsp, rbp\n");
         printf("    pop rbp\n");
         printf("    ret\n");
 

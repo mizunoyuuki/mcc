@@ -85,7 +85,7 @@ Node *equality(){
 			return node;
 		}
 	}
-};
+}
 
 Node *relational(){
 	Node *node = add();
@@ -102,7 +102,7 @@ Node *relational(){
 		else
 			return node;
 	}
-};
+}
 
 Node *add(){
 	Node *node = mul();
@@ -115,7 +115,7 @@ Node *add(){
 		else
 			return node;
 	}
-};
+}
 
 
 Node *mul(){
