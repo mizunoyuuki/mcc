@@ -3,7 +3,7 @@ assert(){
 	expected="$1"
 	input="$2"
 
-	./9cc "$input" > tmp.s
+	./mcc "$input" > tmp.s
 	cc -o tmp tmp.s
 	./tmp
 	actual="$?"
@@ -68,6 +68,15 @@ a = 0;
 b = 1;
 while (a <= 2)
 	a = a+1;
+a;
+'
+
+
+assert 8 '
+i=0;
+a=0;
+for ( i=0; i<4; i= i+1)
+	a = a + 2;
 a;
 '
 
