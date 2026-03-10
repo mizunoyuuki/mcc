@@ -56,6 +56,7 @@ bool consume_return(char *op);
 bool consume_if(char *op);
 bool consume_else(char *op);
 bool consume_while(char *op);
+bool consume_for(char *op);
 
 void program(){
 	int i = 0;
@@ -95,6 +96,28 @@ Node *stmt(){
 		node->lhs = expr();
 		expect(")");
 		node->rhs = stmt();
+		return node;
+	}
+
+	if (consume_for("for")){
+		node = calloc(1, sizeof(Node));
+		node->kind = ND_FOR;
+		expect("(");
+		if (!consume(";")){
+			node->finit = expr();
+			expect(";");
+		}
+
+		if (!consume(";")){
+			node->fcond = expr();
+			expect(";");
+		}
+
+		if (!consume(")")){
+			node->finc = expr();
+			expect(")");
+		}
+		node->fthen = stmt();
 		return node;
 	}
 
@@ -262,6 +285,15 @@ bool consume_else(char *op){
 bool consume_while(char *op){
 	if (token->kind != TK_WHILE || strlen(op) != token->len || memcmp(token->str, op, token->len))
 		return false;
+	token = token->next;
+	return true;
+}
+
+bool consume_for(char *op){
+	if (token->kind != TK_FOR || strlen(op) != token->len || memcmp(token->str, op, token->len)){
+		return false;
+	}
+
 	token = token->next;
 	return true;
 }

@@ -34,6 +34,10 @@ bool is_while(char *p){
 	return !memcmp(p, "while", 5) && !is_alphabet(*(p+5));
 }
 
+bool is_for(char *p){
+	return !memcmp(p, "for", 3) && !is_alphabet(*(p+5));
+}
+
 // 入力文字列pをトークナイズしてそれを返す。
 Token *tokenize(char *p){
 	Token head;
@@ -74,6 +78,12 @@ Token *tokenize(char *p){
 		if (is_while(p)){
 			cur = new_token(TK_WHILE, cur, p, 5);
 			p += 5;
+			continue;
+		}
+
+		if (is_for(p)){
+			cur = new_token(TK_FOR, cur, p, 3);
+			p += 3;
 			continue;
 		}
 
