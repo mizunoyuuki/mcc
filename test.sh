@@ -4,7 +4,7 @@ assert(){
 	input="$2"
 
 	./mcc "$input" > tmp.s
-	cc -o tmp tmp.s
+	cc -o tmp tmp.s test_func.c
 	./tmp
 	actual="$?"
 
@@ -130,4 +130,11 @@ for (i=0; i<4; i= i+1){
 
 b;
 '
+
+assert 33 'foo();'
+assert 5 'bar();'
+assert 10 'add_ten();'
+assert 38 'bar() + foo();'
+assert 15 'a = add_ten(); a + bar();'
+
 echo OK

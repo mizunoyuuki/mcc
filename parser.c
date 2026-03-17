@@ -16,24 +16,24 @@ Node *new_node_num(int val){
 }
 
 // 現在の文法
-// program    = stmt*
-// stmt       = expr ";"
-//            | "if" "(" expr ")" stmt ( "else" stmt )?
-//            | "while" "(" expr ")" stmt
-//            | "for" "(" expr? ";" expr? ";" expr?  ")" stmt
-//            | "return" expr ";"
-// expr       = assign
-// assign     = equality ("=" assign)?
-// equality   = relational ("==" relational | "!=" relational)*
-// relational = add ("<" add | "<=" add | ">" add | ">=" add)*
-// add        = mul ("+" mul | "-" mul)*
-// mul        = unary ("*" unary | "/" unary)*
-// unary      = ("+" | "-")? primary
-// primary    = num | ident | "(" expr ")"
+// fun(); といった引数なし、型なしの関数を呼び出せるようにする
+
 //
-// identを使った
-// ident = ident | num;
-// ident = num + ident;
+// program    = stmt*
+// stmt =     = expr ";"
+//            | "{" stmt* "}"
+//            | "return" expr ";"
+//            | "if" "(" expr ")" stmt ( "else" stmt )?
+//            | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+//            | "while" "(" expr ")" stmt
+// expr       = assign
+// assign     = equality ("=" assign )?
+// equality   = relatinal ( "==" relational | "!=" relational)*
+// relational = add ( "<" add | "<=" add | ">" add | ">=" add )*
+// add        = mul ( "+" mul | "-" mul)*
+// mul        = unary ( "*" unary | "/" unary )*
+// unary      = ("+" | "-")? primary
+// primary    = num | "(" expr ")" | ident ("(" ")")?
 
 // 関数の宣言
 Node *stmt();
@@ -94,15 +94,20 @@ Node *stmt(){
 	if (consume("{")){
 		node = calloc(1, sizeof(Node));
 		node->kind = ND_BLOCK;
-		node->blocks = calloc(100, sizeof(Node*));
-		Node **blocks = node->blocks;
 
-		int i = 0;
+		Node head;
+		head.next = NULL;
+		Node *cur = &head;
+
 		while (!consume("}")){
-			blocks[i] = stmt();
-			i += 1;
+			Node *block_statement = calloc(1, sizeof(Node));
+			block_statement = stmt();
+			cur->next = block_statement;
+			cur = cur->next;
 		}
-		node->block_len = i;
+
+		node->body = head.next;
+
 		return node;
 	}
 
@@ -237,6 +242,17 @@ Node *primary(){
 
 	if (tok){
 		Node *node = calloc(1, sizeof(Node));
+		// 関数呼び出しの場合
+		if (consume("(")){
+			node->kind = ND_FUNCALL;
+			node->funcname = tok->str;
+			node->funclen = tok->len;
+			expect(")");
+
+			return node;
+		}
+
+		// 変数の場合
 		node->kind = ND_LVAR;
 
 		LVar *lvar = find_lvar(tok);
