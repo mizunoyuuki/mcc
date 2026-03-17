@@ -106,12 +106,18 @@ void gen (Node *node){
 			return;
 
 		case ND_BLOCK:
-			for (int i = 0; i < node->block_len; i++){
-				gen(node->blocks[i]);
-				if (i < node->block_len - 1)
-					printf("    pop rax\n");
+			for (Node *n = node->body; n; n = n->next){
+				gen(n);
+				printf("    pop rax\n");
 			}
+			printf("    push 0\n");
 			return;
+
+		case ND_FUNCALL:
+			printf("    call %.*s\n", node->funclen, node->funcname);
+			printf("    push rax\n");
+			return;
+
 	}
 
 	gen(node->lhs);

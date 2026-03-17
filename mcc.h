@@ -24,7 +24,7 @@ typedef enum {
 typedef struct Token Token;
 struct Token {
 	TokenKind kind;
-        Token *next;
+	Token *next;
 	int val;
 	char *str;
 	int len;
@@ -49,6 +49,7 @@ typedef enum {
 	ND_WHILE,    // while
 	ND_FOR,      // for
 	ND_BLOCK,    // {} ブロック
+	ND_FUNCALL,  // 関数呼び出し
 	ND_NUM,      // 整数
 } NodeKind;
 
@@ -72,9 +73,14 @@ struct Node {
 	Node *finc;     // 更新式(expr?)
 	Node *fthen;    // ループの中身(stmt)
 		
-	// Block(複文)
-	Node **blocks;
-	int block_len;
+	// Block(複文) / Node構造体を連結リストとして使えるように追加
+	Node *next;
+	Node *body;
+
+	// 関数呼び出し
+	char *funcname;
+	int funclen;
+
 
 	int val;       // kindがND_NUMの場合のみ扱う
         int offset;    // kindがND_LVARの場合のみ使う
