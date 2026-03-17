@@ -23,7 +23,9 @@ typedef enum {
 // 演算子が文字列の場合もあるため、lenを追加する
 typedef struct Token Token;
 struct Token {
-	TokenKind kind; Token *next; int val;
+	TokenKind kind;
+	Token *next;
+	int val;
 	char *str;
 	int len;
 };
