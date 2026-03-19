@@ -1,0 +1,48 @@
+関数定義の実装
+
+// 新しい文法
+
+  program    = funcdef*
+  funcdef    = ident "(" params? ")" "{" stmt* "}"
+  params     = ident ("," ident)*
+  stmt       = expr ";"
+             | "{" stmt* "}"
+             | "return" expr ";"
+             | "if" "(" expr ")" stmt ( "else" stmt )?
+             | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+             | "while" "(" expr ")" stmt
+  expr       = assign
+  assign     = equality ("=" assign)?
+  equality   = relational ("==" relational | "!=" relational)*
+  relational = add ("<" add | "<=" add | ">" add | ">=" add)*
+  add        = mul ("+" mul | "-" mul)*
+  mul        = unary ("*" unary | "/" unary)*
+  unary      = ("+" | "-")? primary
+  primary    = num
+             | "(" expr ")"
+             | ident ("(" (assign ("," assign)*)? ")")?
+
+今までは、暗黙的に、トップレベルでif分でも変数定義でもなんでもできたが、
+この関数定義の実装から、
+トップレベルでは関数の定義しかできない文法とする。
+
+そのため、今までのテストは全て動かなくなる。
+
+main(){}
+
+でくくるようにする。
+
+関数を呼び出す時、関数を定義するとき。で引数の扱い方が全く別物。
+
+## 関数を呼び出す時 (実引数： Arguments)
+呼び出し側のカッコの中は、[expr(式)]
+
+## 関数を宣言する時(仮引数: Parameters)
+定義側のカッコの中は、式ではなく「宣言(Declaration)」。
+新しく作る変数の型と名前しか書けない。
+
+
+違う話だけど、type_specifier(型指定子)は、コンパイラ用語で「その変数が何者であるか」を指定するキーワード
+
+typedefもその仲間
+

@@ -50,6 +50,7 @@ typedef enum {
 	ND_FOR,      // for
 	ND_BLOCK,    // {} ブロック
 	ND_FUNCALL,  // 関数呼び出し
+	ND_FUNCDEF,   // 関数の定義
 	ND_NUM,      // 整数
 } NodeKind;
 
@@ -80,10 +81,13 @@ struct Node {
 	// 関数呼び出し
 	char *funcname;
 	int funclen;
-	// 関数引数
+	// 関数引数(定義、呼び出し)
 	Node *farg_body;
 	Node *next_farg;
 
+	// 関数本体(定義)
+	Node *func_body;
+	Node *next_func_stmt;
 
 	int val;       // kindがND_NUMの場合のみ扱う
         int offset;    // kindがND_LVARの場合のみ使う

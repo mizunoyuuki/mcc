@@ -41,23 +41,26 @@ bool is_for(char *p){
 // 入力文字列pをトークナイズしてそれを返す。
 // 現在の文法
 //
-// program    = stmt*
-// stmt =     = expr ";"
-//            | "{" stmt* "}"
-//            | "return" expr ";"
-//            | "if" "(" expr ")" stmt ( "else" stmt )?
-//            | "for" "(" expr? ";" expr? ";" expr? ")" stmt
-//            | "while" "(" expr ")" stmt
-// expr       = assign
-// assign     = equality ("=" assign )?
-// equality   = relatinal ( "==" relational | "!=" relational)*
-// relational = add ( "<" add | "<=" add | ">" add | ">=" add )*
-// add        = mul ( "+" mul | "-" mul)*
-// mul        = unary ( "*" unary | "/" unary )*
-// unary      = ("+" | "-")? primary
-// primary    = num
-//            | "(" expr ")"
-//            | ident ("(" (expr ("," expr)*)? ")")?
+// program       = funcdef*
+// fucdef        = ident "(" params? ")" "{" stmt* "}"
+// params        = ident ( "," ident )*
+// stmt          = expr ";"
+//               | "{" stmt* "}"
+//               | "return" expr ";"
+//               | "if" "(" expr ")" stmt ( "else" stmt )?
+//               | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+//               | "while" "(" expr ")" stmt
+// expr          = assign
+// assign        = equaity ( "=" assign )?
+// equality      = relational ( "==" relational | "!=" relational )*
+// relational    = add ( "<" add | "<=" add | ">" add | ">=" add )*
+// add           = mul ( "+" mul | "-" mul )*
+// mul           = unary ( "*" unary | "/" unary )
+// unary         = ("+" | "-")? primary
+// primary       = num
+//               | ident ( "(" (assign? ("," assign)*)? ")" )?
+//               | "(" expr ")"
+// 
 
 Token *tokenize(char *p){
 	Token head;
