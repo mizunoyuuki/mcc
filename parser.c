@@ -86,18 +86,52 @@ Node *funcdef(){
 	// 関数の引数部分
 	// 引数はそのローカル変数が定義されているかのように書く
 	// 関数の呼び出しとは違い、関数の定義は、assignではなく、変数宣言しかおけない。
+	// LVar 構造体
+	// struct LVar {
+	//    LVar *next;
+	//    char *name;
+	//    int  len;
+	//    int  offset;
+	// }
 	expect("(");
-	if (tok){
-		// 変数名の連結リストとかもっといた方がいいんじゃない?
+	if (!consume(")")){
+		// 最初の引数
+		Token *arg_tok = consume_ident();
+
+		// localsに登録
+		LVar *lvar = calloc(1, sizeof(LVar));
+		lvar->next = locals;
+		lvar->name = arg_tok->str;
+		lvar->len = arg_tok->len;
+		lvar->offset = locals ? locals->offset + 8 : 8;
+		locals = lvar;
+
+		// Nodeのfarg_bodyにノードを作る
 		Node *arg_node = calloc(1, sizeof(Node));
-		node->farg_body =  params();
-	        Node *cur_farg =  node->farg_body;
-		while(!consume(")")){
-			expect(",");
-			cur_farg->next_farg = params();
-			cur_farg = cur_farg->next_farg;
+		arg_node->kind = ND_LVAR;
+		arg_node->offset = lvar->offset;
+		node->farg_body = arg_node;
+		Node *cur_farg = arg_node;
+
+		while(consume(",")){
+			arg_tok = consume_ident();
+                        lvar = calloc(1, sizeof(LVar));
+                        lvar->next = locals;
+                        lvar->name = arg_tok->str;
+                        lvar->len = arg_tok->len;
+                        lvar->offset = locals->offset + 8;
+                        locals = lvar;
+
+                        Node *next_arg = calloc(1, sizeof(Node));
+                        next_arg->kind = ND_LVAR;
+                        next_arg->offset = lvar->offset;
+                        cur_farg->next_farg = next_arg;
+                        cur_farg = next_arg;
 		}
+
+		expect(")");
 	}
+
 
 
 	// 関数本体
@@ -109,20 +143,8 @@ Node *funcdef(){
 		cur_func_stmt = cur_func_stmt->next_func_stmt;
 	}
 
+	node->func_lvar = locals;
 	return node;
-}
-
-Node *params(){
-	// locals
-	if (!consume_ident()){
-		return calloc(1, sizeof(Node));
-	}
-
-	while(consume(",")){
-		consume_ident();
-	}
-
-	return calloc(1, sizeof(Node));
 }
 
 Node *stmt(){

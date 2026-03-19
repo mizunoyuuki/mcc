@@ -83,11 +83,11 @@ struct Node {
 	char *funcname;
 	int funclen;
 	// 関数引数(定義、呼び出し)
-	Node *farg_body; // これらは、関数呼び出され時に、どの値をレジスタからスタックに戻せばいいのかを認識するためのもの
+	// 関数呼び出され時に、どの値をレジスタからスタックに戻せばいいのかを認識するため
+	Node *farg_body; 
 	Node *next_farg;
 	// 関数内のローカル変数を管理する構造体連結リスト
 	LVar *func_lvar;
-	LVar *next_func_lvar;
 
 	// 関数本体(定義)
 	Node *func_body;

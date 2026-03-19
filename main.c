@@ -30,29 +30,13 @@ int main(int argc, char *argv[]){
 	program();
 
         printf(".intel_syntax noprefix\n");
-        printf(".globl main\n");
-
-	// プロローグ
-	// 変数26個数分の領域を確保する
-	//
-	printf("    push rbp\n");
-	printf("    mov rbp, rsp\n");
-	printf("    sub rsp, 208\n");
-
+	
 	//先頭の式から
 	for (int i=0; code[i]; i++){
 		gen(code[i]);
 
 		// 式の評価結果としてスタックに一つの値が残っている
 		// はずなので、スタックが煽れないようにpopしておく
-		printf("    pop rax\n");
 	}
-
-	// エピローグ
-	// 最後の式の結果がRAXに残っているので、それが返り血になる
-	printf("    mov rsp, rbp\n");
-        printf("    pop rbp\n");
-        printf("    ret\n");
-
         return 0;
 }
