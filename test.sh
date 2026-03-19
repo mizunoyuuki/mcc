@@ -14,6 +14,7 @@ assert(){
 		echo "$input => $expected expexted, but got $actual"
 		exit 1
 	fi
+	echo "****************"
 }
 
 assert 0 'main(){0;}'
@@ -146,6 +147,38 @@ mizuno(yu, ki){
 main(){
 	c = mizuno(yu,ki);
 	c;
+}
+'
+
+assert 3 '
+add(a, b){
+    return 1+2;
+}
+
+main(){
+    return add(1, 2);
+}
+'
+
+assert 10 '
+five(){
+    return 5;
+}
+
+main(){
+    a = five();
+    b = five();
+    a + b;
+}
+'
+
+assert 7 '
+calc(x, y, z){
+    return 3+4;
+}
+
+main(){
+    return calc(1, 2, 3);
 }
 '
 
