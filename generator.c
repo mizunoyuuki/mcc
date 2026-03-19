@@ -13,6 +13,29 @@ static int label_count = 0;
 
 char *farg_registers[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
 
+// 現在の文法
+//
+// program       = funcdef*
+// fucdef        = ident "(" params? ")" "{" stmt* "}"
+// params        = ident ( "," ident )*
+// stmt          = expr ";"
+//               | "{" stmt* "}"
+//               | "return" expr ";"
+//               | "if" "(" expr ")" stmt ( "else" stmt )?
+//               | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+//               | "while" "(" expr ")" stmt
+// expr          = assign
+// assign        = equaity ( "=" assign )?
+// equality      = relational ( "==" relational | "!=" relational )*
+// relational    = add ( "<" add | "<=" add | ">" add | ">=" add )*
+// add           = mul ( "+" mul | "-" mul )*
+// mul           = unary ( "*" unary | "/" unary )
+// unary         = ("+" | "-")? primary
+// primary       = num
+//               | ident ( "(" (assign? ("," assign)*)? ")" )?
+//               | "(" expr ")"
+//
+
 void gen (Node *node){
 	switch (node->kind){
 		case ND_NUM:
@@ -137,6 +160,31 @@ void gen (Node *node){
 
 			label_count++;
 			printf("    push rax\n");
+
+			return;
+
+		case ND_FUNCDEF:
+			// ラベル
+			printf(".globl %.*s\n", node->funclen, node->funcname);
+			printf("%.*s:\n", node->funclen, node->funcname);
+			//
+			// プロローグ
+                        // 変数26個数分の領域を確保する
+                        //
+                        printf("    push rbp\n");
+                        printf("    mov rbp, rsp\n");
+                        printf("    sub rsp, 208\n");
+
+			// 本体
+			for (Node *n = node->func_body; n; n = n->next_func_stmt){
+				gen(n);
+				printf("    pop rax\n");
+			}
+
+			// エピローグ
+			printf("    mov rsp, rbp\n");
+			printf("    pop rbp\n");
+			printf("    ret\n");
 
 			return;
 	}

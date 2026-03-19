@@ -31,7 +31,6 @@ int main(int argc, char *argv[]){
 
         printf(".intel_syntax noprefix\n");
         printf(".globl main\n");
-        printf("main: \n");
 
 	// プロローグ
 	// 変数26個数分の領域を確保する

@@ -16,26 +16,30 @@ Node *new_node_num(int val){
 }
 
 // 現在の文法
-// fun(); といった引数なし、型なしの関数を呼び出せるようにする
-
+// program       = funcdef*
+// fucdef        = ident "(" params? ")" "{" stmt* "}"
+// params        = ident ( "," ident )*
+// stmt          = expr ";"
+//               | "{" stmt* "}"
+//               | "return" expr ";"
+//               | "if" "(" expr ")" stmt ( "else" stmt )?
+//               | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+//               | "while" "(" expr ")" stmt
+// expr          = assign
+// assign        = equaity ( "=" assign )?
+// equality      = relational ( "==" relational | "!=" relational )*
+// relational    = add ( "<" add | "<=" add | ">" add | ">=" add )*
+// add           = mul ( "+" mul | "-" mul )*
+// mul           = unary ( "*" unary | "/" unary )
+// unary         = ("+" | "-")? primary
+// primary       = num
+//               | ident ( "(" (assign? ("," assign)*)? ")" )?
+//               | "(" expr ")"
 //
-// program    = stmt*
-// stmt =     = expr ";"
-//            | "{" stmt* "}"
-//            | "return" expr ";"
-//            | "if" "(" expr ")" stmt ( "else" stmt )?
-//            | "for" "(" expr? ";" expr? ";" expr? ")" stmt
-//            | "while" "(" expr ")" stmt
-// expr       = assign
-// assign     = equality ("=" assign )?
-// equality   = relatinal ( "==" relational | "!=" relational)*
-// relational = add ( "<" add | "<=" add | ">" add | ">=" add )*
-// add        = mul ( "+" mul | "-" mul)*
-// mul        = unary ( "*" unary | "/" unary )*
-// unary      = ("+" | "-")? primary
-// primary    = num | "(" expr ")" | ident ("(" ")")?
 
 // 関数の宣言
+Node *funcdef();
+Node *params();
 Node *stmt();
 Node *expr();
 Node *assign();
@@ -61,10 +65,64 @@ bool consume_for(char *op);
 void program(){
 	int i = 0;
 	while (!at_eof()){
-		code[i++] = stmt();
+		code[i++] = funcdef();
 	}
 
 	code[i] = NULL;
+}
+
+// fucdef        = ident "(" params? ")" "{" stmt* "}"
+// params        = ident ( "," ident )*
+
+Node *funcdef(){
+	Node *node = calloc(1, sizeof(Node));
+	Token *tok = consume_ident();
+
+	node->kind = ND_FUNCDEF;
+	node->funcname = tok->str;
+	node->funclen = tok->len;
+
+
+	// 関数の引数部分
+	// 引数はそのローカル変数が定義されているかのように書く
+	// 関数の呼び出しとは違い、関数の定義は、assignではなく、変数宣言しかおけない。
+	expect("(");
+	if (tok){
+		// 変数名の連結リストとかもっといた方がいいんじゃない?
+		Node *arg_node = calloc(1, sizeof(Node));
+		node->farg_body =  params();
+	        Node *cur_farg =  node->farg_body;
+		while(!consume(")")){
+			expect(",");
+			cur_farg->next_farg = params();
+			cur_farg = cur_farg->next_farg;
+		}
+	}
+
+
+	// 関数本体
+	expect("{");
+	node->func_body = stmt();
+	Node *cur_func_stmt = node->func_body;
+	while(!consume("}")){
+		cur_func_stmt->next_func_stmt = stmt();
+		cur_func_stmt = cur_func_stmt->next_func_stmt;
+	}
+
+	return node;
+}
+
+Node *params(){
+	// locals
+	if (!consume_ident()){
+		return calloc(1, sizeof(Node));
+	}
+
+	while(consume(",")){
+		consume_ident();
+	}
+
+	return calloc(1, sizeof(Node));
 }
 
 Node *stmt(){
