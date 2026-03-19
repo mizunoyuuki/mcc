@@ -204,4 +204,41 @@ main(){
 }
 '
 
+echo "=== 関数定義（引数を使用） ==="
+assert 42 '
+id(x){ return x; }
+main(){ return id(42); }
+'
+
+assert 8 '
+add(a, b){ return a + b; }
+main(){ return add(3, 5); }
+'
+
+assert 5 '
+sub(a, b){ return a - b; }
+main(){ return sub(10, 5); }
+'
+
+assert 15 '
+sum_abc(a, b, c){ return a + b + c; }
+main(){ return sum_abc(3, 5, 7); }
+'
+
+assert 20 '
+double_it(x){
+    y = x + x;
+    return y;
+}
+main(){ return double_it(10); }
+'
+
+assert 55 '
+fib(n){
+    if (n <= 1) return n;
+    return fib(n - 1) + fib(n - 2);
+}
+main(){ return fib(10); }
+'
+
 echo OK

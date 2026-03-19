@@ -56,6 +56,7 @@ typedef enum {
 
 // Node型
 typedef struct Node Node;
+typedef struct LVar LVar;
 
 struct Node {
 	NodeKind kind; // ノードの型
@@ -82,8 +83,11 @@ struct Node {
 	char *funcname;
 	int funclen;
 	// 関数引数(定義、呼び出し)
-	Node *farg_body;
+	// 関数呼び出され時に、どの値をレジスタからスタックに戻せばいいのかを認識するため
+	Node *farg_body; 
 	Node *next_farg;
+	// 関数内のローカル変数を管理する構造体連結リスト
+	LVar *func_lvar;
 
 	// 関数本体(定義)
 	Node *func_body;
@@ -94,8 +98,6 @@ struct Node {
 };
 
 // LVar型 ローカル変数の型
-typedef struct LVar LVar;
-
 struct LVar {
 	LVar *next;   // 次の変数かNULL
 	char *name;   // 変数名

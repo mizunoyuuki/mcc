@@ -175,6 +175,11 @@ void gen (Node *node){
                         printf("    mov rbp, rsp\n");
                         printf("    sub rsp, 208\n");
 
+			int arg_i = 0;
+			for (Node *n = node->farg_body; n; n = n->next_farg){
+				printf("    mov [rbp-%d], %s\n", n->offset, farg_registers[arg_i++]);
+			}
+
 			// 本体
 			for (Node *n = node->func_body; n; n = n->next_func_stmt){
 				gen(n);
