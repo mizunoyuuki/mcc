@@ -136,5 +136,6 @@ assert 5 'bar();'
 assert 10 'add_ten();'
 assert 38 'bar() + foo();'
 assert 15 'a = add_ten(); a + bar();'
+assert 36 'f_with_arg(3, 33);'
 
 echo OK

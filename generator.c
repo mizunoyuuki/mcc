@@ -11,6 +11,8 @@ void gen_lval(Node *node){
 
 static int label_count = 0;
 
+char *farg_registers[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+
 void gen (Node *node){
 	switch (node->kind){
 		case ND_NUM:
@@ -114,6 +116,14 @@ void gen (Node *node){
 			return;
 
 		case ND_FUNCALL:
+			// 16バイト境界
+			
+			int i = 0;
+			for (Node *n = node->farg_body; n; n = n->next_farg){
+				gen(n);
+				printf("    pop %s\n", farg_registers[i++]);
+			}
+
 			printf("    call %.*s\n", node->funclen, node->funcname);
 			printf("    push rax\n");
 			return;
