@@ -75,6 +75,7 @@ void program(){
 // params        = ident ( "," ident )*
 
 Node *funcdef(){
+	locals = NULL;
 	Node *node = calloc(1, sizeof(Node));
 	Token *tok = consume_ident();
 
