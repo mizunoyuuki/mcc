@@ -40,21 +40,24 @@ bool is_for(char *p){
 
 // 入力文字列pをトークナイズしてそれを返す。
 // 現在の文法
-// program      = stmt*
-// stmt         = expr ";"
-//              | "{" stmt* "}"
-//              | "if" "(" expr ")" stmt ("else" expr)?
-//              | "while" "(" expr ")" stmt
-//              | "for" "(" expr? ";" expr? ";" expr ")" stmt
-//              | "return" expr ";"
-// expr         = assign
-// assign       = equality ("=" assign)?
-// equality     = relational ("==" relational | "!=" relational)*
-// relational   = add ("<" add | "<=" add | ">" add | ">=" add)*
-// add          = mul ("+" mul | "-" mul)*
-// mul          = unary ("*" unary | "/" unary)
-// unary        = ("+" | "-")? primary
-// primary      = num | ident | "(" expr ")"
+//
+// program    = stmt*
+// stmt =     = expr ";"
+//            | "{" stmt* "}"
+//            | "return" expr ";"
+//            | "if" "(" expr ")" stmt ( "else" stmt )?
+//            | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+//            | "while" "(" expr ")" stmt
+// expr       = assign
+// assign     = equality ("=" assign )?
+// equality   = relatinal ( "==" relational | "!=" relational)*
+// relational = add ( "<" add | "<=" add | ">" add | ">=" add )*
+// add        = mul ( "+" mul | "-" mul)*
+// mul        = unary ( "*" unary | "/" unary )*
+// unary      = ("+" | "-")? primary
+// primary    = num
+//            | "(" expr ")"
+//            | ident ("(" (expr ("," expr)*)? ")")?
 
 Token *tokenize(char *p){
 	Token head;
@@ -66,7 +69,7 @@ Token *tokenize(char *p){
 			p++;
 			continue;
 		}
-		if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == ';'){
+		if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == ';' || *p == ','){
 			cur = new_token(TK_RESERVED, cur, p++, 1);
 			continue;
 		}

@@ -80,6 +80,9 @@ struct Node {
 	// 関数呼び出し
 	char *funcname;
 	int funclen;
+	// 関数引数
+	Node *farg_body;
+	Node *next_farg;
 
 
 	int val;       // kindがND_NUMの場合のみ扱う

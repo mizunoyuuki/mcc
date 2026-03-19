@@ -247,8 +247,19 @@ Node *primary(){
 			node->kind = ND_FUNCALL;
 			node->funcname = tok->str;
 			node->funclen = tok->len;
-			expect(")");
+			if (consume(")")) {
+				return node;
+			}
 
+			node->farg_body = assign();
+			Node *cur_farg = node->farg_body;
+
+			while (consume(",")) {
+				cur_farg->next_farg = assign();
+				cur_farg = cur_farg->next_farg;
+			}
+
+			expect(")");
 			return node;
 		}
 
@@ -282,6 +293,8 @@ LVar *find_lvar(Token *tok){
 
 	return NULL;
 }
+
+
 
 // 次のトークンが期待している記号の時は、トークンを一つ読み進める。
 // 真を返す。それ以外の場合は偽を返す。

@@ -1,0 +1,35 @@
+現在の文法は以下である。
+
+以下の文法がどれだけCのセルフホストするコンパイラの作成に十分なのかをgeminiで学習
+
+// program    = stmt*
+// stmt =     = expr ";"
+//            | "{" stmt* "}"
+//            | "return" expr ";"
+//            | "if" "(" expr ")" stmt ( "else" stmt )?
+//            | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+//            | "while" "(" expr ")" stmt
+// expr       = assign
+// assign     = equality ("=" assign )?
+// equality   = relatinal ( "==" relational | "!=" relational)*
+// relational = add ( "<" add | "<=" add | ">" add | ">=" add )*
+// add        = mul ( "+" mul | "-" mul)*
+// mul        = unary ( "*" unary | "/" unary )*
+// unary      = ("+" | "-")? primary
+// primary    = num | "(" expr ")" | ident ("(" ")")?
+
+
+この状態は「セルフホスト」を達成するには20%程度の達成度。
+
+セルフホストするためには、「データ構造(型)」と「メモリ操作(ポインタ)」、そして「プログラムの構成単位(関数・宣言)」に関する文法が決定的に不足している。
+
+１。「関数定義」と「グローバル変数」
+現在は、program = stmt*. 全てのコードが実行分であるスクリプト言語に近い形。
+C言語のソースコードのトップレベル（一番外側）は、「宣言」か「関数定義」でなければいけない。
+ 
+
+関数呼び出し時のレジスタの使い方。
+
+可変長引数関数(printf等)を呼ぶ際、raxにSSEレジスタで渡す浮動小数点引数の数をセットするABI制約がある。
+
+
