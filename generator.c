@@ -116,18 +116,29 @@ void gen (Node *node){
 			return;
 
 		case ND_FUNCALL:
-			// 16バイト境界
-			
 			int i = 0;
 			for (Node *n = node->farg_body; n; n = n->next_farg){
 				gen(n);
 				printf("    pop %s\n", farg_registers[i++]);
 			}
 
+			printf("    mov rax, rsp\n");
+			printf("    and rax, 15\n");
+			printf("    jnz .Lcall%d\n", label_count);
+			printf("    mov rax, 0\n");
 			printf("    call %.*s\n", node->funclen, node->funcname);
-			printf("    push rax\n");
-			return;
+			printf("    jmp .Lend%d\n", label_count);
+			printf(".Lcall%d:\n", label_count);
+                        printf("    sub rsp, 8\n");
+                        printf("    mov rax, 0\n");
+                        printf("    call %.*s\n", node->funclen, node->funcname);
+                        printf("    add rsp, 8\n");
+			printf(".Lend%d:\n", label_count);
 
+			label_count++;
+			printf("    push rax\n");
+
+			return;
 	}
 
 	gen(node->lhs);
