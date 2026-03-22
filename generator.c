@@ -1,8 +1,12 @@
 #include"mcc.h"
 
 void gen_lval(Node *node){
+        if (node->kind == ND_DEREF){
+                gen(node->lhs);
+                return;
+        }
 	if (node->kind != ND_LVAR)
-		error ("代入の左辺値が変数ではありません");
+		error ("代入の左辺値が変数, デリファレンスポインタではありません");
 
 	printf("    mov rax, rbp\n");
 	printf("    sub rax, %d\n", node->offset);
@@ -192,6 +196,22 @@ void gen (Node *node){
 			printf("    ret\n");
 
 			return;
+
+		case ND_ADDR:
+			// lhsにunary()のノードが入ってる。
+			// ND_ADDRの時、lhsにはidentが入ってる。
+			// そのidentのアドレスをpushする
+			gen_lval(node->lhs);
+			return;
+
+		case ND_DEREF:
+			// lhsにunary()のノードが入ってる。
+			// *aとか、*10かをコンパイルできるようにする
+			gen(node->lhs);
+			printf("    pop rax\n");
+			printf("    mov rax, [rax]\n");
+                        printf("    push rax\n");
+                        return;
 	}
 
 	gen(node->lhs);
