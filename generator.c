@@ -1,8 +1,12 @@
 #include"mcc.h"
 
 void gen_lval(Node *node){
+        if (node->kind == ND_DEREF){
+                gen(node->lhs);
+                return;
+        }
 	if (node->kind != ND_LVAR)
-		error ("代入の左辺値が変数ではありません");
+		error ("代入の左辺値が変数, デリファレンスポインタではありません");
 
 	printf("    mov rax, rbp\n");
 	printf("    sub rax, %d\n", node->offset);
