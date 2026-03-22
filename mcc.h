@@ -50,7 +50,9 @@ typedef enum {
 	ND_FOR,      // for
 	ND_BLOCK,    // {} ブロック
 	ND_FUNCALL,  // 関数呼び出し
-	ND_FUNCDEF,   // 関数の定義
+	ND_FUNCDEF,  // 関数の定義
+	ND_ADDR,     // アドレス参照
+	ND_DEREF,    // アドレスデリファレンス
 	ND_NUM,      // 整数
 } NodeKind;
 
