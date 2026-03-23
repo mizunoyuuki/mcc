@@ -33,7 +33,7 @@ Node *new_node_num(int val){
 // mul           = unary ( "*" unary | "/" unary )
 // unary         = ("+" | "-")? primary
 // primary       = num
-//               | ident ( "(" (assign? ("," assign)*)? ")" )?
+//               | "int" ident ( "(" (assign? ("," assign)*)? ")" )?
 //               | "(" expr ")"
 //
 
@@ -55,6 +55,7 @@ int expect_number();
 bool at_eof();
 LVar *find_lvar(Token *);
 
+Token *consume_type_and_ident(TypeSpecifier *);
 Token *consume_ident(void);
 bool consume_return(char *op);
 bool consume_if(char *op);
@@ -77,7 +78,12 @@ void program(){
 Node *funcdef(){
 	locals = NULL;
 	Node *node = calloc(1, sizeof(Node));
-	Token *tok = consume_ident();
+    TypeSpecifier t;
+	Token *tok = consume_type_and_ident(&t);
+
+    if (!tok){
+        tok = consume_ident();
+    }
 
 	node->kind = ND_FUNCDEF;
 	node->funcname = tok->str;
@@ -323,15 +329,21 @@ Node *primary(){
 		return node;
 	}
 
-	Token *tok = consume_ident();
 
-	if (tok){
+    TypeSpecifier t;
+	Token *ident_tok = consume_type_and_ident(&t);
+
+    if (!ident_tok){
+        ident_tok = consume_ident();
+    }
+
+	if (ident_tok){
 		Node *node = calloc(1, sizeof(Node));
 		// 関数呼び出しの場合
 		if (consume("(")){
 			node->kind = ND_FUNCALL;
-			node->funcname = tok->str;
-			node->funclen = tok->len;
+			node->funcname = ident_tok->str;
+			node->funclen = ident_tok->len;
 			if (consume(")")) {
 				return node;
 			}
@@ -351,14 +363,14 @@ Node *primary(){
 		// 変数の場合
 		node->kind = ND_LVAR;
 
-		LVar *lvar = find_lvar(tok);
+		LVar *lvar = find_lvar(ident_tok);
 		if (lvar){
 			node->offset = lvar->offset;
 		} else {
 			lvar = calloc(1, sizeof(LVar));
 			lvar->next = locals;
-			lvar->name = tok->str;
-			lvar->len = tok->len;
+			lvar->name = ident_tok->str;
+			lvar->len = ident_tok->len;
 			lvar->offset = locals ? locals->offset + 8 : 8;
 			node->offset = lvar->offset;
 			locals = lvar;
@@ -448,13 +460,24 @@ int expect_number() {
 	return val;
 }
 
-Token *consume_ident(){
-	if (token->kind == TK_IDENT) {
-		Token *tok = token;
-		token = token->next;
-		return tok;
-	}
+Token *consume_type_and_ident(TypeSpecifier *t){
+    if ((token->kind == TK_INT_TYPE) && token->next->kind == TK_IDENT){
+        Token *tok = token->next;
+        token = token->next->next;
+        return tok;
+    }
 	return NULL;
+}
+
+Token *consume_ident(){
+    if (token->kind == TK_IDENT){
+        Token *tok = token;
+        token = token->next;
+        return tok;
+    }
+
+    return NULL;
+
 }
 
 bool at_eof(){
