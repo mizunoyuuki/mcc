@@ -38,6 +38,15 @@ bool is_for(char *p){
 	return !memcmp(p, "for", 3) && !is_alphabet(*(p+3));
 }
 
+TypeSpecifier type_specifiers[] = { {"int", TK_INT_TYPE, 3} };
+
+TypeSpecifier *is_type_specifier(char *p){
+    for (int i = 0; i < sizeof(type_specifiers) / sizeof(type_specifiers[0]); i++)
+        if (!memcmp(p, type_specifiers[i].type_name, type_specifiers[i].len))
+            return &type_specifiers[i];
+    return NULL;
+}
+
 // 入力文字列pをトークナイズしてそれを返す。
 // 現在の文法
 //
@@ -72,6 +81,13 @@ Token *tokenize(char *p){
 			p++;
 			continue;
 		}
+
+        TypeSpecifier *type = is_type_specifier(p);
+        if (type){
+            cur = new_token(type->token_kind, cur, p, type->len);
+            p += type->len;
+            continue;
+        }
 		if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == ';' || *p == ',' || *p == '&'){
 			cur = new_token(TK_RESERVED, cur, p++, 1);
 			continue;
@@ -81,6 +97,7 @@ Token *tokenize(char *p){
 			p+=2;
 			continue;
 		}
+
 		if (*p == '<' || *p == '>' || *p == '='){
 			cur = new_token(TK_RESERVED, cur, p++, 1);
 			continue;
