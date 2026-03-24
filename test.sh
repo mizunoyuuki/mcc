@@ -352,5 +352,3 @@ int main(){
 	return a;
 }
 '
-
-echo OK

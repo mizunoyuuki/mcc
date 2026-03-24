@@ -126,6 +126,7 @@ struct LVar {
 	LVar *next;   // 次の変数かNULL
 	char *name;   // 変数名
 	int len;      // 変数の長さ
+	Type *type;   // 変数型を表す連結リスト
 	int offset;   // RBPからアクセスするためのオフセット値
 };
 

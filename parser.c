@@ -476,7 +476,7 @@ bool is_type_keyword(){
 Node *parse_declaration(TypeKind ident_type){
 	token = token->next; // 型キーワードを消費
 
-    // if *があったら、ポインタ、whileで回して
+    // type指定子後に*があったらwhileで回してType型の連結リストを作っておく
     Type *head_type = calloc(1, sizeof(Type));
     Type *cur_type  = head_type;
     while (consume("*")){
@@ -503,6 +503,7 @@ Node *parse_declaration(TypeKind ident_type){
 	lvar->next = locals;
 	lvar->name = ident_tok->str;
 	lvar->len = ident_tok->len;
+    lvar->type = cur_type;
 	lvar->offset = locals ? locals->offset + 8 : 8;
 	locals = lvar;
 
