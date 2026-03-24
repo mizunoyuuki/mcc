@@ -16,6 +16,7 @@ typedef enum {
         TK_FOR,       // for
 	TK_NUM,       // 整数トークン
         TK_INT_TYPE,  // int型
+        TK_CHAR_TYPE, // char型
 	TK_EOF        // 入力の終わりを表すトークン
 } TokenKind;
 
@@ -31,6 +32,7 @@ struct Token {
 	int len;
 };
 
+// 型定義のルックアップテーブルって言葉で説明できるみたい
 typedef struct TypeSpecifier {
     char *type_name;
     TokenKind token_kind;

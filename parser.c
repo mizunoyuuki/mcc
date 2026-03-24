@@ -17,29 +17,29 @@ Node *new_node_num(int val){
 
 // 現在の文法
 // program       = funcdef*
-// fucdef        = ident "(" params? ")" "{" stmt* "}"
+// funcdef       = type ident "(" params? ")" "{" stmt* "}"
 // params        = ident ( "," ident )*
-// stmt          = expr ";"
+// stmt          = type ident ("=" expr)? ";"
+//               | expr ";"
 //               | "{" stmt* "}"
 //               | "return" expr ";"
 //               | "if" "(" expr ")" stmt ( "else" stmt )?
-//               | "for" "(" expr? ";" expr? ";" expr? ")" stmt
+//               | "for" "(" (type ident ("=" expr)? | expr)? ";" expr? ";" expr? ")" stmt
 //               | "while" "(" expr ")" stmt
 // expr          = assign
-// assign        = equaity ( "=" assign )?
+// assign        = equality ( "=" assign )?
 // equality      = relational ( "==" relational | "!=" relational )*
 // relational    = add ( "<" add | "<=" add | ">" add | ">=" add )*
 // add           = mul ( "+" mul | "-" mul )*
 // mul           = unary ( "*" unary | "/" unary )
 // unary         = ("+" | "-")? primary
 // primary       = num
-//               | "int" ident ( "(" (assign? ("," assign)*)? ")" )?
+//               | ident ( "(" (assign? ("," assign)*)? ")" )?
 //               | "(" expr ")"
 //
 
 // 関数の宣言
 Node *funcdef();
-Node *params();
 Node *stmt();
 Node *expr();
 Node *assign();
@@ -49,13 +49,14 @@ Node *add();
 Node *mul();
 Node *primary();
 Node *unary();
+Node *parse_declaration();
+bool is_type_keyword();
 bool consume(char*);
 void expect(char*);
 int expect_number();
 bool at_eof();
 LVar *find_lvar(Token *);
 
-Token *consume_type_and_ident(TypeSpecifier *);
 Token *consume_ident(void);
 bool consume_return(char *op);
 bool consume_if(char *op);
@@ -78,13 +79,16 @@ void program(){
 Node *funcdef(){
 	locals = NULL;
 	Node *node = calloc(1, sizeof(Node));
-    TypeSpecifier t;
-	Token *tok = consume_type_and_ident(&t);
 
-    if (!tok){
-        error("型の定義がありません。");
-        exit(1);
-    }
+	if (!is_type_keyword()){
+		error("型の定義がありません。");
+	}
+	token = token->next; // 型キーワードを消費
+
+	Token *tok = consume_ident();
+	if (!tok){
+		error("関数名がありません。");
+	}
 
 	node->kind = ND_FUNCDEF;
 	node->funcname = tok->str;
@@ -158,6 +162,13 @@ Node *funcdef(){
 Node *stmt(){
 	Node *node;
 
+	// 変数宣言: type ident ("=" expr)? ";"
+	if (is_type_keyword()){
+		node = parse_declaration();
+		expect(";");
+		return node;
+	}
+
 	if (consume_return("return")){ node = calloc(1, sizeof(Node)); node->kind = ND_RETURN;
 		node->lhs = expr();
 		expect(";");
@@ -214,7 +225,11 @@ Node *stmt(){
 		node->kind = ND_FOR;
 		expect("(");
 		if (!consume(";")){
-			node->finit = expr();
+			if (is_type_keyword()){
+				node->finit = parse_declaration();
+			} else {
+				node->finit = expr();
+			}
 			expect(";");
 		}
 
@@ -331,13 +346,7 @@ Node *primary(){
 	}
 
 
-    TypeSpecifier t;
-	Token *ident_tok = consume_type_and_ident(&t);
-	bool has_type = (ident_tok != NULL);
-
-    if (!ident_tok){
-        ident_tok = consume_ident();
-    }
+	Token *ident_tok = consume_ident();
 
 	if (ident_tok){
 		Node *node = calloc(1, sizeof(Node));
@@ -362,28 +371,14 @@ Node *primary(){
 			return node;
 		}
 
-		// 変数の場合
+		// 変数参照の場合
 		node->kind = ND_LVAR;
 
 		LVar *lvar = find_lvar(ident_tok);
-		if (has_type && lvar){
-			error("変数が二重に定義されています。");
-		}
-		if (!has_type && !lvar){
+		if (!lvar){
 			error("未定義の変数です。変数は型をつけて定義してください。");
 		}
-
-		if (lvar){
-			node->offset = lvar->offset;
-		} else {
-			lvar = calloc(1, sizeof(LVar));
-			lvar->next = locals;
-			lvar->name = ident_tok->str;
-			lvar->len = ident_tok->len;
-			lvar->offset = locals ? locals->offset + 8 : 8;
-			node->offset = lvar->offset;
-			locals = lvar;
-		}
+		node->offset = lvar->offset;
 		return node;
 	}
 
@@ -469,13 +464,48 @@ int expect_number() {
 	return val;
 }
 
-Token *consume_type_and_ident(TypeSpecifier *t){
-    if ((token->kind == TK_INT_TYPE) && token->next->kind == TK_IDENT){
-        Token *tok = token->next;
-        token = token->next->next;
-        return tok;
-    }
-	return NULL;
+// 現在のトークンが型キーワードかどうか（トークンは消費しない）
+bool is_type_keyword(){
+	return token->kind == TK_INT_TYPE || token->kind == TK_CHAR_TYPE;
+}
+
+// 変数宣言をパースする: type ident ("=" expr)?
+// セミコロンは呼び出し側で処理する
+Node *parse_declaration(){
+	token = token->next; // 型キーワードを消費
+
+	Token *ident_tok = consume_ident();
+	if (!ident_tok){
+		error("変数名がありません。");
+	}
+
+	// 二重定義チェック
+	LVar *lvar = find_lvar(ident_tok);
+	if (lvar){
+		error("変数が二重に定義されています。");
+	}
+
+	// localsに登録
+	lvar = calloc(1, sizeof(LVar));
+	lvar->next = locals;
+	lvar->name = ident_tok->str;
+	lvar->len = ident_tok->len;
+	lvar->offset = locals ? locals->offset + 8 : 8;
+	locals = lvar;
+
+	// 初期化式があるか
+	if (consume("=")){
+		Node *lvar_node = calloc(1, sizeof(Node));
+		lvar_node->kind = ND_LVAR;
+		lvar_node->offset = lvar->offset;
+		return new_node(ND_ASSIGN, lvar_node, expr());
+	}
+
+	// 初期化なし
+	Node *node = calloc(1, sizeof(Node));
+	node->kind = ND_LVAR;
+	node->offset = lvar->offset;
+	return node;
 }
 
 Token *consume_ident(){

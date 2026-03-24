@@ -38,11 +38,16 @@ bool is_for(char *p){
 	return !memcmp(p, "for", 3) && !is_alphabet(*(p+3));
 }
 
-TypeSpecifier type_specifiers[] = { {"int", TK_INT_TYPE, 3} };
+// 型情報をパースするときのルックアップテーブル
+TypeSpecifier type_specifiers[] = {
+    {"int",  TK_INT_TYPE,  3},
+    {"char", TK_CHAR_TYPE, 4},
+};
 
 TypeSpecifier *is_type_specifier(char *p){
     for (int i = 0; i < sizeof(type_specifiers) / sizeof(type_specifiers[0]); i++)
-        if (!memcmp(p, type_specifiers[i].type_name, type_specifiers[i].len))
+        if (!memcmp(p, type_specifiers[i].type_name, type_specifiers[i].len)
+            && !is_alphabet(*(p + type_specifiers[i].len)))
             return &type_specifiers[i];
     return NULL;
 }
