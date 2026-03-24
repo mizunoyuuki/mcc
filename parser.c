@@ -519,6 +519,7 @@ Node *parse_declaration(TypeKind ident_type){
 	Node *node = calloc(1, sizeof(Node));
 	node->kind = ND_LVAR;
 	node->offset = lvar->offset;
+    node->type = cur_type;
 	return node;
 }
 

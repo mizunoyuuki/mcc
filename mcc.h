@@ -117,6 +117,9 @@ struct Node {
 	Node *func_body;
 	Node *next_func_stmt;
 
+	// 型情報
+	Type *type;
+
 	int val;       // kindがND_NUMの場合のみ扱う
         int offset;    // kindがND_LVARの場合のみ使う
 };
