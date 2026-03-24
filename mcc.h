@@ -15,6 +15,7 @@ typedef enum {
 	TK_WHILE,     // while
         TK_FOR,       // for
 	TK_NUM,       // 整数トークン
+        TK_INT_TYPE,  // int型
 	TK_EOF        // 入力の終わりを表すトークン
 } TokenKind;
 
@@ -29,6 +30,12 @@ struct Token {
 	char *str;
 	int len;
 };
+
+typedef struct TypeSpecifier {
+    char *type_name;
+    TokenKind token_kind;
+    int len;
+} TypeSpecifier;
 
 // Node型のNodeKindの列挙型
 typedef enum {

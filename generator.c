@@ -1,5 +1,7 @@
 #include"mcc.h"
 
+void gen(Node *node);
+
 void gen_lval(Node *node){
         if (node->kind == ND_DEREF){
                 gen(node->lhs);
