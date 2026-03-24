@@ -345,4 +345,12 @@ int main(){
 }
 '
 
+assert 10 '
+int main(){
+	int **a;
+	a = 10;
+	return a;
+}
+'
+
 echo OK

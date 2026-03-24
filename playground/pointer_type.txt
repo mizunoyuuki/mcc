@@ -1,0 +1,25 @@
+任意の深さのポインタ変数を定義できるように。
+連結リストで、
+
+Type.pointer => type.pointer => int
+みたいなことができるようにする。
+
+
+Type構造体を作る。
+
+typedef enum { TY_INT, TY_PTR } TypeKind;
+
+typedef struct Type Type;
+
+struct Type {
+    TypeKind kind;
+    Type *ptr_to;
+    int size;
+}
+
+
+そして、
+int val = 12;
+int *ptr = &val;
+
+とかけるようにする。

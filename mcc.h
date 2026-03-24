@@ -39,6 +39,19 @@ typedef struct TypeSpecifier {
     int len;
 } TypeSpecifier;
 
+typedef enum {
+	TY_INT,
+	TY_PTR,
+} TypeKind;
+
+typedef struct Type Type;
+
+struct Type {
+	TypeKind kind;
+	Type *to_ptr;
+	int size;
+};
+
 // Node型のNodeKindの列挙型
 typedef enum {
 	ND_ADD,      // +

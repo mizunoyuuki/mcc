@@ -79,7 +79,6 @@ void program(){
 Node *funcdef(){
 	locals = NULL;
 	Node *node = calloc(1, sizeof(Node));
-
 	if (!is_type_keyword()){
 		error("型の定義がありません。");
 	}
@@ -163,13 +162,16 @@ Node *stmt(){
 	Node *node;
 
 	// 変数宣言: type ident ("=" expr)? ";"
+    // ポインタ変数としての定義もできるように
 	if (is_type_keyword()){
 		node = parse_declaration();
 		expect(";");
 		return node;
 	}
 
-	if (consume_return("return")){ node = calloc(1, sizeof(Node)); node->kind = ND_RETURN;
+	if (consume_return("return")){
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_RETURN;
 		node->lhs = expr();
 		expect(";");
 		return node;
@@ -471,8 +473,19 @@ bool is_type_keyword(){
 
 // 変数宣言をパースする: type ident ("=" expr)?
 // セミコロンは呼び出し側で処理する
-Node *parse_declaration(){
+Node *parse_declaration(TypeKind ident_type){
 	token = token->next; // 型キーワードを消費
+
+    // if *があったら、ポインタ、whileで回して
+    Type *head_type = calloc(1, sizeof(Type));
+    Type *cur_type  = head_type;
+    while (consume("*")){
+        cur_type->kind = TY_PTR;
+        cur_type->to_ptr = calloc(1, sizeof(Type));
+        cur_type = cur_type->to_ptr;
+    }
+    // cur_type:ptr => cur_type:引数で受け取った
+    cur_type->kind = ident_type;
 
 	Token *ident_tok = consume_ident();
 	if (!ident_tok){
