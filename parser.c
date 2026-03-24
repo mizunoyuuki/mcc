@@ -82,7 +82,8 @@ Node *funcdef(){
 	Token *tok = consume_type_and_ident(&t);
 
     if (!tok){
-        tok = consume_ident();
+        error("型の定義がありません。");
+        exit(1);
     }
 
 	node->kind = ND_FUNCDEF;
@@ -332,6 +333,7 @@ Node *primary(){
 
     TypeSpecifier t;
 	Token *ident_tok = consume_type_and_ident(&t);
+	bool has_type = (ident_tok != NULL);
 
     if (!ident_tok){
         ident_tok = consume_ident();
@@ -364,6 +366,13 @@ Node *primary(){
 		node->kind = ND_LVAR;
 
 		LVar *lvar = find_lvar(ident_tok);
+		if (has_type && lvar){
+			error("変数が二重に定義されています。");
+		}
+		if (!has_type && !lvar){
+			error("未定義の変数です。変数は型をつけて定義してください。");
+		}
+
 		if (lvar){
 			node->offset = lvar->offset;
 		} else {

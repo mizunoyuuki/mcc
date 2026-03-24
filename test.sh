@@ -156,6 +156,8 @@ int mizuno(yu, ki){
 }
 
 int main(){
+	int yu = 1;
+	int ki = 2;
 	int c = mizuno(yu,ki);
 	c;
 }
@@ -255,7 +257,7 @@ int main(){
 assert 42 '
 int main(){
     int a = 42;
-    p = &a;
+    int p = &a;
     return *p;
 }
 '
@@ -284,8 +286,8 @@ assert 5 '
 int main(){
     int a = 5;
     int b = 7;
-    c = &b;
-    z = c + 8;
+    int c = &b;
+    int z = c + 8;
     return *z;
 }
 '
@@ -294,8 +296,8 @@ int main(){
 assert 3 '
 int main(){
     int a = 3;
-    b = &a;
-    c = &b;
+    int b = &a;
+    int c = &b;
     return **c;
 }
 '
@@ -313,7 +315,7 @@ int main(){
 assert 4 '
 int main(){
 	int a = 10;
-	p = &a;
+	int p = &a;
 	*p = 4;
 	return a;
 }
@@ -322,10 +324,25 @@ int main(){
 assert 99 '
 int main(){
      int a = 1;
-     p = &a;
+     int p = &a;
      *p = 99;
      return a;
  }
+'
+
+assert 1 '
+int main(){
+	int a = 1;
+	return a;
+}
+'
+
+assert 10 '
+int main(){
+	int a;
+	a = 10;
+	return a;
+}
 '
 
 echo OK
