@@ -345,10 +345,114 @@ int main(){
 }
 '
 
-assert 10 '
+echo "=== ポインタ型変数 ==="
+
+# int *p で宣言して初期化、デリファレンスで値を読む
+assert 3 '
 int main(){
-	int **a;
-	a = 10;
-	return a;
+    int a = 3;
+    int *p = &a;
+    return *p;
+}
+'
+
+# int *p を宣言後に代入
+assert 42 '
+int main(){
+    int a = 42;
+    int *p;
+    p = &a;
+    return *p;
+}
+'
+
+# int *p 経由で書き込み
+assert 99 '
+int main(){
+    int a = 1;
+    int *p = &a;
+    *p = 99;
+    return a;
+}
+'
+
+# ポインタ変数の値そのものを読む（アドレス値の比較はできないが、コピーして使えるか）
+assert 7 '
+int main(){
+    int a = 7;
+    int *p = &a;
+    int *q = p;
+    return *q;
+}
+'
+
+# int **pp で二重ポインタ
+assert 5 '
+int main(){
+    int a = 5;
+    int *p = &a;
+    int **pp = &p;
+    return **pp;
+}
+'
+
+# int **pp 経由で書き込み
+assert 88 '
+int main(){
+    int a = 0;
+    int *p = &a;
+    int **pp = &p;
+    **pp = 88;
+    return a;
+}
+'
+
+# ポインタ型変数をデリファレンスして式の中で使う
+assert 30 '
+int main(){
+    int a = 10;
+    int b = 20;
+    int *pa = &a;
+    int *pb = &b;
+    return *pa + *pb;
+}
+'
+
+# ポインタ型変数と通常変数の混在
+assert 15 '
+int main(){
+    int a = 10;
+    int *p = &a;
+    int b = *p + 5;
+    return b;
+}
+'
+
+echo "=== ポインタ型変数（初期化なし宣言） ==="
+
+# int **pp; の宣言だけでクラッシュしないこと
+assert 0 '
+int main(){
+    int **pp;
+    return 0;
+}
+'
+
+# int *p; の宣言だけでクラッシュしないこと
+assert 0 '
+int main(){
+    int *p;
+    return 0;
+}
+'
+
+# int **pp; を宣言後に代入して二重デリファレンス
+assert 5 '
+int main(){
+    int a = 5;
+    int *p = &a;
+    int **pp;
+    pp = &p;
+    return **pp;
 }
 '

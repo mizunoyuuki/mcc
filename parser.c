@@ -503,7 +503,7 @@ Node *parse_declaration(TypeKind ident_type){
 	lvar->next = locals;
 	lvar->name = ident_tok->str;
 	lvar->len = ident_tok->len;
-    lvar->type = cur_type;
+    lvar->type = head_type;
 	lvar->offset = locals ? locals->offset + 8 : 8;
 	locals = lvar;
 
@@ -519,7 +519,7 @@ Node *parse_declaration(TypeKind ident_type){
 	Node *node = calloc(1, sizeof(Node));
 	node->kind = ND_LVAR;
 	node->offset = lvar->offset;
-    node->type = cur_type;
+    node->type = head_type;
 	return node;
 }
 

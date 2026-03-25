@@ -3,10 +3,10 @@
 void gen(Node *node);
 
 void gen_lval(Node *node){
-        if (node->kind == ND_DEREF){
-                gen(node->lhs);
-                return;
-        }
+    if (node->kind == ND_DEREF){
+        gen(node->lhs);
+        return;
+    }
 	if (node->kind != ND_LVAR)
 		error ("代入の左辺値が変数, デリファレンスポインタではありません");
 
@@ -50,9 +50,17 @@ void gen (Node *node){
 		case ND_LVAR:
 			gen_lval(node);
 			printf("    pop rax\n");
-			printf("    mov rax, [rax]\n");
+            Type *type = node->type;
+
+            if (type){
+                for (type; type->to_ptr; type = type->to_ptr)
+                    printf("    mov rax, [rax]\n");
+            } else {
+                printf("    mov rax, [rax]\n");
+            }
 			printf("    push rax\n");
 			return;
+
 		case ND_ASSIGN:
 			gen_lval(node->lhs);
 			gen(node->rhs);
