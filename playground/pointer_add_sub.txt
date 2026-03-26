@@ -1,0 +1,21 @@
+ポインタの足し算。
+
+パーサーの段階で、
+int a = 5;
+int b = 9;
+int *c = &b + 1;
+
+return *c;
+=> 5
+
+みたいなコードがコンパイルでいる必要がある。
+
+tokenizer
+そのままで良さそう。
+
+=> もしかしてadd_typeの関数で実装するのがベストかも
+
+現状addの演算はadd命令を使っているが、
+LEA(Load Effective address命令を使った方が早い.
+その理由にADD命令は、ALUで行われれるが、LEAはALUで実行されない。
+LEAはAGU(Adress Generate Unit)で処理される

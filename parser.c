@@ -12,6 +12,11 @@ Node *new_node_num(int val){
 	Node *node = calloc(1, sizeof(Node));
 	node->kind = ND_NUM;
 	node->val = val;
+    Type *type = calloc(1, sizeof(Type));
+    type->kind = TY_INT;
+    type->size = 8;
+    node->type = type;
+
 	return node;
 }
 
@@ -107,40 +112,18 @@ Node *funcdef(){
 	expect("(");
 	if (!consume(")")){
 		// 最初の引数
-		Token *arg_tok = consume_ident();
-
-		// localsに登録
-		LVar *lvar = calloc(1, sizeof(LVar));
-		lvar->next = locals;
-		lvar->name = arg_tok->str;
-		lvar->len = arg_tok->len;
-		lvar->offset = locals ? locals->offset + 8 : 8;
-		locals = lvar;
-
-		// Nodeのfarg_bodyにノードを作る
-		Node *arg_node = calloc(1, sizeof(Node));
-		arg_node->kind = ND_LVAR;
-		arg_node->offset = lvar->offset;
-		node->farg_body = arg_node;
-		Node *cur_farg = arg_node;
+        Node *cur_arg = parse_declaration();
+        Node *head_arg = cur_arg;
 
 		while(consume(",")){
-			arg_tok = consume_ident();
-                        lvar = calloc(1, sizeof(LVar));
-                        lvar->next = locals;
-                        lvar->name = arg_tok->str;
-                        lvar->len = arg_tok->len;
-                        lvar->offset = locals->offset + 8;
-                        locals = lvar;
+            Node *arg = parse_declaration();
 
-                        Node *next_arg = calloc(1, sizeof(Node));
-                        next_arg->kind = ND_LVAR;
-                        next_arg->offset = lvar->offset;
-                        cur_farg->next_farg = next_arg;
-                        cur_farg = next_arg;
+            cur_arg->next_farg = arg;
+            cur_arg = arg;
 		}
 
 		expect(")");
+        node->farg_body = head_arg;
 	}
 
 
@@ -490,6 +473,7 @@ Node *parse_declaration(){
     }
     // cur_type:ptr => cur_type:引数で受け取った
     cur_type->kind = ident_type;
+    cur_type->size = 8;
 
 	Token *ident_tok = consume_ident();
 	if (!ident_tok){
