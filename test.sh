@@ -475,3 +475,56 @@ int main(){
 	return *p;
 }
 '
+
+echo "=== 関数引数にポインタ型 ==="
+
+  # 関数引数に int * を使ってデリファレンス
+  assert 42 '
+  int deref(int *p){ return *p; }
+  int main(){
+      int a = 42;
+      return deref(&a);
+  }
+  '
+
+  # ポインタ引数経由で書き込み
+  assert 99 '
+  int set_val(int *p){
+      *p = 99;
+      return 0;
+  }
+  int main(){
+      int a = 1;
+      set_val(&a);
+      return a;
+  }
+  '
+
+  # ポインタ引数 + 通常引数の混在
+  assert 30 '
+  int add_deref(int *p, int b){ return *p + b; }
+  int main(){
+      int a = 10;
+      return add_deref(&a, 20);
+  }
+  '
+
+  # ポインタ引数でポインタ加算
+  assert 5 '
+  int read_next(int *p){ return *(p + 1); }
+  int main(){
+      int a = 5;
+      int b = 7;
+      return read_next(&b);
+  }
+  '
+
+  # 二重ポインタ引数
+  assert 3 '
+int deref(int **pp){ return **pp; }
+int main(){
+	int a = 3;
+	int *p = &a;
+	return deref(&p);
+  }
+  '
