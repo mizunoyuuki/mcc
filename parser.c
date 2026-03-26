@@ -112,6 +112,7 @@ Node *funcdef(){
 	expect("(");
 	if (!consume(")")){
 		// 最初の引数
+
 		Token *arg_tok = consume_ident();
 
 		// localsに登録
@@ -131,18 +132,18 @@ Node *funcdef(){
 
 		while(consume(",")){
 			arg_tok = consume_ident();
-                        lvar = calloc(1, sizeof(LVar));
-                        lvar->next = locals;
-                        lvar->name = arg_tok->str;
-                        lvar->len = arg_tok->len;
-                        lvar->offset = locals->offset + 8;
-                        locals = lvar;
+            lvar = calloc(1, sizeof(LVar));
+            lvar->next = locals;
+            lvar->name = arg_tok->str;
+            lvar->len = arg_tok->len;
+            lvar->offset = locals->offset + 8;
+            locals = lvar;
 
-                        Node *next_arg = calloc(1, sizeof(Node));
-                        next_arg->kind = ND_LVAR;
-                        next_arg->offset = lvar->offset;
-                        cur_farg->next_farg = next_arg;
-                        cur_farg = next_arg;
+            Node *next_arg = calloc(1, sizeof(Node));
+            next_arg->kind = ND_LVAR;
+            next_arg->offset = lvar->offset;
+            cur_farg->next_farg = next_arg;
+            cur_farg = next_arg;
 		}
 
 		expect(")");

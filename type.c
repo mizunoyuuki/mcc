@@ -147,12 +147,16 @@ void add_type(Node *node){
 
             break;
         case ND_ASSIGN:
+            node->type = node->lhs->type;
             break;
         case ND_LVAR:
+            // すでにparserの段階で設定されている
             break;
         case ND_RETURN:
+            node->type = node->lhs->type;
             break;
         case ND_WHILE:
+            // while文は別に設定する必要ない。
             break;
         case ND_ADDR:
             // TODO:ここにもなんか実装する必要がある気がする
@@ -170,12 +174,14 @@ void add_type(Node *node){
             node->type = node->lhs->type->to_ptr;
             break;
         case ND_NUM:
+            // すでに設定されている。
             break;
         case ND_FUNCALL:
             Type *t = calloc(1, sizeof(Type));
             t->kind = TY_INT;
             t->size = INT_SIZE;
             node->type = t;
+            break;
         default:
             break;
     }
