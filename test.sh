@@ -151,7 +151,7 @@ assert 36 'int main(){f_with_arg(3, 33);}'
 
 echo "=== 関数定義 ==="
 assert 46 '
-int mizuno(yu, ki){
+int mizuno(int yu, int ki){
     return 2*23;
 }
 
@@ -178,7 +178,7 @@ int main(){
 '
 
 assert 1 '
-int check(x, y){
+int check(int x, int y){
     if (1 == 1)
         return 1;
     else
@@ -208,27 +208,27 @@ int main(){
 
 echo "=== 関数定義（引数を使用） ==="
 assert 42 '
-int id(x){ return x; }
+int id(int x){ return x; }
 int main(){ return id(42); }
 '
 
 assert 8 '
-int add(a, b){ return a + b; }
+int add(int a, int b){ return a + b; }
 int main(){ return add(3, 5); }
 '
 
 assert 5 '
-int sub(a, b){ return a - b; }
+int sub(int a, int b){ return a - b; }
 int main(){ return sub(10, 5); }
 '
 
 assert 15 '
-int sum_abc(a, b, c){ return a + b + c; }
+int sum_abc(int a, int b, int c){ return a + b + c; }
 int main(){ return sum_abc(3, 5, 7); }
 '
 
 assert 20 '
-int double_it(x){
+int double_it(int x){
     int y = x + x;
     return y;
 }
@@ -236,7 +236,7 @@ int main(){ return double_it(10); }
 '
 
 assert 55 '
-int fib(n){
+int fib(int n){
     if (n <= 1) return n;
     return fib(n - 1) + fib(n - 2);
 }
@@ -286,8 +286,8 @@ assert 5 '
 int main(){
     int a = 5;
     int b = 7;
-    int c = &b;
-    int z = c + 8;
+    int *c = &b;
+    int z = c + 1;
     return *z;
 }
 '
@@ -296,15 +296,15 @@ int main(){
 assert 3 '
 int main(){
     int a = 3;
-    int b = &a;
-    int c = &b;
+    int *b = &a;
+    int *c = &b;
     return **c;
 }
 '
 
 # 関数引数に対する & と *
 assert 77 '
-int f(x){
+int f(int x){
     return *(&x);
 }
 int main(){
@@ -315,7 +315,7 @@ int main(){
 assert 4 '
 int main(){
 	int a = 10;
-	int p = &a;
+	int *p = &a;
 	*p = 4;
 	return a;
 }
