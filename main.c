@@ -21,15 +21,16 @@ Node *code[100];
 LVar *locals;
 
 int main(int argc, char *argv[]){
-        if (argc != 2){
-                error("引数の個数が正しくありません。");
-                return 1;
-        }
 
-        token = tokenize(argv[1]);
+    if (argc != 2){
+            error("引数の個数が正しくありません。");
+            return 1;
+    }
+
+    token = tokenize(argv[1]);
 	program();
 
-        printf(".intel_syntax noprefix\n");
+    printf(".intel_syntax noprefix\n");
 	
 	//先頭の式から
 	for (int i=0; code[i]; i++){
@@ -38,5 +39,5 @@ int main(int argc, char *argv[]){
 		// 式の評価結果としてスタックに一つの値が残っている
 		// はずなので、スタックが煽れないようにpopしておく
 	}
-        return 0;
+    return 0;
 }
