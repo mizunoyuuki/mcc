@@ -14,6 +14,7 @@ Token *tokenize(char *);
 Node *expr(void);
 void gen(Node *);
 void program(void);
+void add_type(Node*);
 
 // 現在のtokenの外部変数
 Token *token;
@@ -27,13 +28,20 @@ int main(int argc, char *argv[]){
             return 1;
     }
 
+    // 字句解析: Tokenリスト作成
     token = tokenize(argv[1]);
+    // 構文解析: AST作成
 	program();
+    // 意味解析: 全てのノードに型を付与
+    for(int i = 0; code[i]; i++){
+        add_type(code[i]);
+    }
 
     printf(".intel_syntax noprefix\n");
 	
 	//先頭の式から
 	for (int i=0; code[i]; i++){
+        // アセンブリ生成
 		gen(code[i]);
 
 		// 式の評価結果としてスタックに一つの値が残っている
