@@ -15,6 +15,7 @@ Node *expr(void);
 void gen(Node *);
 void program(void);
 void add_type(Node*);
+Node* optimize(Node*);
 
 // 現在のtokenの外部変数
 Token *token;
@@ -35,6 +36,11 @@ int main(int argc, char *argv[]){
     // 意味解析: 全てのノードに型を付与
     for(int i = 0; code[i]; i++){
         add_type(code[i]);
+    }
+
+    // 最適化フェーズ
+    for(int i = 0; code[i]; i++){
+        code[i] = optimize(code[i]);
     }
 
     printf(".intel_syntax noprefix\n");
