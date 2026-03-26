@@ -1,5 +1,5 @@
 CFLAGS=-std=c11 -g -static
-SRCS=main.c tokenizer.c parser.c generator.c util.c
+SRCS=main.c tokenizer.c parser.c generator.c util.c type.c optimize.c
 OBJS=$(SRCS:.c=.o)
 
 mcc: $(OBJS)
