@@ -5,6 +5,7 @@
 #include<stdarg.h>
 #include<string.h>
 
+
 // tokenの種類
 typedef enum {
 	TK_RESERVED,  // 記号
@@ -139,5 +140,9 @@ struct LVar {
 extern Token *token;
 extern Node *code[100];
 extern LVar *locals;
+
+// type.cで、parse.cで定義した関数を使いたくなる。他にもありそうなので、optimizeでも使うと思う.
+extern Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
+extern Node *new_node_num(int val);
 
 extern void error(char*, ...);

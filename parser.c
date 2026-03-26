@@ -12,6 +12,11 @@ Node *new_node_num(int val){
 	Node *node = calloc(1, sizeof(Node));
 	node->kind = ND_NUM;
 	node->val = val;
+    Type *type = calloc(1, sizeof(Type));
+    type->kind = TY_INT;
+    type->size = 8;
+    node->type = type;
+
 	return node;
 }
 
@@ -490,6 +495,7 @@ Node *parse_declaration(){
     }
     // cur_type:ptr => cur_type:引数で受け取った
     cur_type->kind = ident_type;
+    cur_type->size = 8;
 
 	Token *ident_tok = consume_ident();
 	if (!ident_tok){
