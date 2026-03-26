@@ -16,6 +16,7 @@ typedef enum {
         TK_FOR,       // for
 	TK_NUM,       // 整数トークン
         TK_INT_TYPE,  // int型
+        TK_CHAR_TYPE, // char型
 	TK_EOF        // 入力の終わりを表すトークン
 } TokenKind;
 
@@ -31,11 +32,26 @@ struct Token {
 	int len;
 };
 
+// 型定義のルックアップテーブルって言葉で説明できるみたい
 typedef struct TypeSpecifier {
     char *type_name;
     TokenKind token_kind;
     int len;
 } TypeSpecifier;
+
+typedef enum {
+	TY_INT,
+	TY_CHAR,
+	TY_PTR,
+} TypeKind;
+
+typedef struct Type Type;
+
+struct Type {
+	TypeKind kind;
+	Type *to_ptr;
+	int size;
+};
 
 // Node型のNodeKindの列挙型
 typedef enum {
@@ -102,6 +118,9 @@ struct Node {
 	Node *func_body;
 	Node *next_func_stmt;
 
+	// 型情報
+	Type *type;
+
 	int val;       // kindがND_NUMの場合のみ扱う
         int offset;    // kindがND_LVARの場合のみ使う
 };
@@ -111,6 +130,7 @@ struct LVar {
 	LVar *next;   // 次の変数かNULL
 	char *name;   // 変数名
 	int len;      // 変数の長さ
+	Type *type;   // 変数型を表す連結リスト
 	int offset;   // RBPからアクセスするためのオフセット値
 };
 
