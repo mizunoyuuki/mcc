@@ -179,5 +179,4 @@ void add_type(Node *node){
         default:
             break;
     }
-
 }
