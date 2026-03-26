@@ -41,6 +41,7 @@ typedef struct TypeSpecifier {
 
 typedef enum {
 	TY_INT,
+	TY_CHAR,
 	TY_PTR,
 } TypeKind;
 

@@ -49,15 +49,9 @@ void gen (Node *node){
 			return;
 		case ND_LVAR:
 			gen_lval(node);
-			printf("    pop rax\n");
-            Type *type = node->type;
 
-            if (type){
-                for (type; type->to_ptr; type = type->to_ptr)
-                    printf("    mov rax, [rax]\n");
-            } else {
-                printf("    mov rax, [rax]\n");
-            }
+			printf("    pop rax\n");
+            printf("    mov rax, [rax]\n");
 			printf("    push rax\n");
 			return;
 
@@ -220,8 +214,8 @@ void gen (Node *node){
 			gen(node->lhs);
 			printf("    pop rax\n");
 			printf("    mov rax, [rax]\n");
-                        printf("    push rax\n");
-                        return;
+            printf("    push rax\n");
+            return;
 	}
 
 	gen(node->lhs);

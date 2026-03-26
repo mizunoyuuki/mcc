@@ -49,7 +49,7 @@ Node *add();
 Node *mul();
 Node *primary();
 Node *unary();
-Node *parse_declaration();
+Node *parse_declaration(void);
 bool is_type_keyword();
 bool consume(char*);
 void expect(char*);
@@ -381,6 +381,7 @@ Node *primary(){
 			error("未定義の変数です。変数は型をつけて定義してください。");
 		}
 		node->offset = lvar->offset;
+        node->type   = lvar->type;
 		return node;
 	}
 
@@ -471,9 +472,12 @@ bool is_type_keyword(){
 	return token->kind == TK_INT_TYPE || token->kind == TK_CHAR_TYPE;
 }
 
+
+
 // 変数宣言をパースする: type ident ("=" expr)?
 // セミコロンは呼び出し側で処理する
-Node *parse_declaration(TypeKind ident_type){
+Node *parse_declaration(){
+    TokenKind ident_type = token->kind == TK_INT_TYPE ? TY_INT : TY_CHAR;
 	token = token->next; // 型キーワードを消費
 
     // type指定子後に*があったらwhileで回してType型の連結リストを作っておく
@@ -512,6 +516,7 @@ Node *parse_declaration(TypeKind ident_type){
 		Node *lvar_node = calloc(1, sizeof(Node));
 		lvar_node->kind = ND_LVAR;
 		lvar_node->offset = lvar->offset;
+        lvar_node->type = head_type;
 		return new_node(ND_ASSIGN, lvar_node, expr());
 	}
 
