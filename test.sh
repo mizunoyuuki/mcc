@@ -573,3 +573,61 @@ int main(){
 }
 '
 
+assert 10 '
+int main(){
+	int a;
+	a = 10;
+	if (sizeof(int) == 8){
+		return a;
+	} else {
+		return 12;
+	}
+}
+'
+
+echo "=== sizeof(ポインタ型) ==="
+
+assert 8 '
+int main(){
+	return sizeof(int **);
+}
+'
+
+assert 8 '
+int main(){
+	return sizeof(char *);
+}
+'
+
+assert 8 '
+int main(){
+	return sizeof(1 + 5);
+}
+'
+
+assert 8 '
+int main(){
+	int a = 8;
+	int b = 12;
+	int *c = &b;
+	return sizeof(*(c+1));
+}
+'
+
+assert 8 '
+int main(){
+	int a = 8;
+	int b = 12;
+	int *c = &b;
+	return sizeof(*c+1);
+}
+'
+
+assert 8 '
+int main(){
+	int a = 8;
+	int b = 12;
+	int *c = &b;
+	return sizeof(c+2);
+}
+'
