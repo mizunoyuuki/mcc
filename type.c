@@ -67,6 +67,7 @@ void add_type(Node *node){
                 // &x + 1 といったポインタ変数　+ NUMの計算になる。
                 Node *tmp = node->rhs;
                 node->rhs = new_node(ND_MUL, tmp, new_node_num(INT_SIZE));
+                add_type(node->rhs);
 
                 return;
             }
@@ -85,6 +86,8 @@ void add_type(Node *node){
                 // &x + 1 といったポインタ変数　+ NUMの計算になる。
                 Node *tmp = node->lhs;
                 node->lhs = new_node(ND_MUL, tmp, new_node_num(INT_SIZE));
+
+                add_type(node->lhs);
 
                 return;
             }
