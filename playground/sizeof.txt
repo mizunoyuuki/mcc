@@ -1,0 +1,6 @@
+sizeof演算子が返す型は、本来size_t
+64bitコンピュータであれば、大体unsigned longがtypedefされている。
+
+sizeofのオペランドの式は、実際には評価されない。
+
+sizeof(x++)と書いても、

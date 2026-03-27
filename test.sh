@@ -526,5 +526,50 @@ int main(){
 	int a = 3;
 	int *p = &a;
 	return deref(&p);
-  }
-  '
+}
+'
+
+assert 8 '
+int main(){
+	int a;
+	return sizeof(a);
+}
+'
+
+assert 8 '
+int main(){
+	int *p;
+	return sizeof(p);
+}
+'
+
+assert 8 '
+int main(){
+	int a = 42;
+	return sizeof(a);
+}
+'
+
+assert 16 '
+int main(){
+	int a;
+	return sizeof(a) + sizeof(a);
+}
+'
+
+assert 8 '
+int main(){
+	int a;
+	int b = sizeof(a);
+	return b;
+}
+'
+
+assert 1 '
+int main(){
+	int a;
+	if (sizeof(a) == 8) return 1;
+	return 0;
+}
+'
+

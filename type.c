@@ -33,6 +33,9 @@ void add_type(Node *node){
               for (Node *n = node->farg_body; n; n = n->next_farg)
                   add_type(n);
               break;
+          case ND_SIZEOF:
+              add_type(node->sizeof_target);
+              break;
           default:
               break;
     }
@@ -121,8 +124,7 @@ void add_type(Node *node){
 
         case ND_MUL:
             if (node->lhs->type->kind == TY_INT &&  node->rhs->type->kind == TY_INT){
-                Type *type = calloc(1,sizeof(Type));
-                type->kind = TY_INT;
+                Type *type = calloc(1,sizeof(Type)); type->kind = TY_INT;
                 type->size = INT_SIZE;
                 node->type = type;
             }
@@ -184,6 +186,17 @@ void add_type(Node *node){
             t->kind = TY_INT;
             t->size = INT_SIZE;
             node->type = t;
+            break;
+        case ND_SIZEOF:
+            Type *t_sizeof = calloc(1, sizeof(Type));
+            t_sizeof->kind = TY_INT;
+            t_sizeof->size = INT_SIZE;
+
+            // ND_TYPEOFのノードはNUMに上書きする。
+            node->kind = ND_NUM;
+            node->val = node->sizeof_target->type->size;
+            node->type = t_sizeof;
+
             break;
         default:
             break;

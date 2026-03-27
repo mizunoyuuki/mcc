@@ -38,6 +38,10 @@ bool is_for(char *p){
 	return !memcmp(p, "for", 3) && !is_alphabet(*(p+3));
 }
 
+bool is_sizeof(char *p){
+    return !memcmp(p, "sizeof", 6) && !is_alphabet(*(p+6));
+}
+
 // 型情報をパースするときのルックアップテーブル
 TypeSpecifier type_specifiers[] = {
     {"int",  TK_INT_TYPE,  3},
@@ -97,11 +101,18 @@ Token *tokenize(char *p){
 			cur = new_token(TK_RESERVED, cur, p++, 1);
 			continue;
 		}
+
 		if (startswith(p, "==") || startswith(p, "!=") || startswith(p, "<=") || startswith(p, ">=") ){
 			cur = new_token(TK_RESERVED, cur, p, 2);
 			p+=2;
 			continue;
 		}
+
+        if (is_sizeof(p)){
+            cur = new_token(TK_SIZEOF, cur, p, 6);
+            p += 6;
+            continue;
+        }
 
 		if (*p == '<' || *p == '>' || *p == '='){
 			cur = new_token(TK_RESERVED, cur, p++, 1);
