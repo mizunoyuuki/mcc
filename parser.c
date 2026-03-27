@@ -64,6 +64,7 @@ bool at_eof();
 LVar *find_lvar(Token *);
 
 Token *consume_ident(void);
+int consume_type_size(void);
 bool consume_return(char *op);
 bool consume_if(char *op);
 bool consume_else(char *op);
@@ -328,9 +329,17 @@ Node *unary(){
         // TODO: とりあえず、sizeof(変数名)だけをサポートさせる
 
         consume("(");
+        int t_si = consume_type_size();
+
         Node *node = calloc(1, sizeof(Node));
         node->kind = ND_SIZEOF;
-        node->sizeof_target = unary();
+
+        if (t_si > 0){
+            node->sizeof_val = t_si;
+        } else {
+            node->sizeof_target = expr();
+        }
+
         expect(")");
 
         return node;
@@ -544,6 +553,35 @@ Token *consume_ident(){
     return NULL;
 
 }
+
+TypeSpecifier *find_type_specifier(TokenKind tk){
+    int size = sizeof(type_specifiers) / sizeof(TypeSpecifier);
+
+    for(int i = 0; i < size; i++ ){
+        if (type_specifiers[i].token_kind == tk)
+            return &type_specifiers[i];
+    }
+    return NULL;
+}
+
+int consume_type_size(){
+
+    TokenKind tk = token->kind;
+    if (tk != TK_INT_TYPE && tk != TK_CHAR_TYPE)
+        return -1;
+
+    TypeSpecifier *ts = find_type_specifier(tk);
+    token = token->next;
+
+    // ポインタ型なら常に8バイト
+    if (consume("*")){
+        while (consume("*")) {}
+        return 8;  // PTR_SIZE
+    }
+
+    return ts->size;
+}
+
 
 bool at_eof(){
 	return token->kind == TK_EOF;

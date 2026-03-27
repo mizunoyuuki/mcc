@@ -38,6 +38,7 @@ typedef struct TypeSpecifier {
     char *type_name;
     TokenKind token_kind;
     int len;
+    int size;
 } TypeSpecifier;
 
 typedef enum {
@@ -126,6 +127,7 @@ struct Node {
 
 	// 単項演算子のtypeofの子ノード
 	Node *sizeof_target;
+	int  sizeof_val;
 
 	int val;       // kindがND_NUMの場合のみ扱う
         int offset;    // kindがND_LVARの場合のみ使う
@@ -145,6 +147,7 @@ struct LVar {
 extern Token *token;
 extern Node *code[100];
 extern LVar *locals;
+extern TypeSpecifier type_specifiers[2];
 
 // type.cで、parse.cで定義した関数を使いたくなる。他にもありそうなので、optimizeでも使うと思う.
 extern Node *new_node(NodeKind kind, Node *lhs, Node *rhs);

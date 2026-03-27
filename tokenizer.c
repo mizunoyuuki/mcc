@@ -42,12 +42,6 @@ bool is_sizeof(char *p){
     return !memcmp(p, "sizeof", 6) && !is_alphabet(*(p+6));
 }
 
-// 型情報をパースするときのルックアップテーブル
-TypeSpecifier type_specifiers[] = {
-    {"int",  TK_INT_TYPE,  3},
-    {"char", TK_CHAR_TYPE, 4},
-};
-
 TypeSpecifier *is_type_specifier(char *p){
     for (int i = 0; i < sizeof(type_specifiers) / sizeof(type_specifiers[0]); i++)
         if (!memcmp(p, type_specifiers[i].type_name, type_specifiers[i].len)
