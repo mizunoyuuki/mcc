@@ -5,7 +5,6 @@
 #include<stdarg.h>
 #include<string.h>
 
-
 // tokenの種類
 typedef enum {
 	TK_RESERVED,  // 記号
@@ -18,6 +17,7 @@ typedef enum {
 	TK_NUM,       // 整数トークン
         TK_INT_TYPE,  // int型
         TK_CHAR_TYPE, // char型
+	TK_SIZEOF,    // sizeof演算子
 	TK_EOF        // 入力の終わりを表すトークン
 } TokenKind;
 
@@ -77,6 +77,7 @@ typedef enum {
 	ND_FUNCDEF,  // 関数の定義
 	ND_ADDR,     // アドレス参照
 	ND_DEREF,    // アドレスデリファレンス
+	ND_SIZEOF,   // sizeof演算子
 	ND_NUM,      // 整数
 } NodeKind;
 
@@ -121,6 +122,10 @@ struct Node {
 
 	// 型情報
 	Type *type;
+
+
+	// 単項演算子のtypeofの子ノード
+	Node *sizeof_target;
 
 	int val;       // kindがND_NUMの場合のみ扱う
         int offset;    // kindがND_LVARの場合のみ使う

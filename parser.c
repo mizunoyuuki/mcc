@@ -1,4 +1,5 @@
 #include"mcc.h"
+#define PTR_SIZE 8
 
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs){
 	Node *node = calloc(1, sizeof(Node));
@@ -68,6 +69,7 @@ bool consume_if(char *op);
 bool consume_else(char *op);
 bool consume_while(char *op);
 bool consume_for(char *op);
+bool consume_sizeof(char *op);
 
 void program(){
 	int i = 0;
@@ -320,6 +322,19 @@ Node *unary(){
 		return new_node(ND_DEREF, unary(), NULL);
 	if (consume("&"))
 		return new_node(ND_ADDR, unary(), NULL);
+    if (consume_sizeof("sizeof")){
+        // sizeof(x);
+        // のxを処理して、Typeがなんなのか、sizeがなんなのかを計算
+        // TODO: とりあえず、sizeof(変数名)だけをサポートさせる
+
+        consume("(");
+        Node *node = calloc(1, sizeof(Node));
+        node->kind = ND_SIZEOF;
+        node->sizeof_target = unary();
+        expect(")");
+
+        return node;
+    }
 	return primary();
 }
 
@@ -431,6 +446,12 @@ bool consume_for(char *op){
 	return true;
 }
 
+bool consume_sizeof(char *op){
+    if (token->kind != TK_SIZEOF || strlen(op) != token->len || memcmp(token->str, op, token->len))
+        return false;
+    token = token->next;
+    return true;
+}
 // 次のトークンが期待している記号の時には、トークンを一つ読み進める。
 // それ以外の場合にはエラーを報告する。
 void expect(char *op){
@@ -468,6 +489,7 @@ Node *parse_declaration(){
     Type *cur_type  = head_type;
     while (consume("*")){
         cur_type->kind = TY_PTR;
+        cur_type->size = PTR_SIZE;
         cur_type->to_ptr = calloc(1, sizeof(Type));
         cur_type = cur_type->to_ptr;
     }
