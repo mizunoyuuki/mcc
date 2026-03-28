@@ -33,12 +33,12 @@ struct Token {
 	int len;
 };
 
-// 型定義のルックアップテーブルって言葉で説明できるみたい
+// C言語の言語仕様としてサポートしている型の配列。
+// tokenizerで、文字=>トークンに変換するために使う
 typedef struct TypeSpecifier {
     char *type_name;
     TokenKind token_kind;
     int len;
-    int size;
 } TypeSpecifier;
 
 typedef enum {
@@ -53,6 +53,16 @@ struct Type {
 	TypeKind kind;
 	Type *to_ptr;
 	int size;
+};
+
+// パーサーで使うような型情報配列。
+typedef struct TypeRegistry TypeRegistry;
+
+struct TypeRegistry{
+	char *name;
+	int name_len;
+	Type *type;
+	TypeRegistry *next;
 };
 
 // Node型のNodeKindの列挙型

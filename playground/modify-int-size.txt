@@ -1,0 +1,21 @@
+現状int, int *のみの型を実装しており、これをint 4バイト、int * 8バイトのように、異なるバイト数でスタックを管理できるように実装を進める。
+
+現在、int, char など固定配列で管理しているため、後々typedefで動的に型名が追加されたりすると、うまく動作しなくなる。
+そこで、動的に管理できる仕組みを追加し、int を4バイトで処理できるようにする。
+
+その上で、いくつかのフェーズに分けてインクリメンタルに実装できるような方法で進める.
+
+まず現状の整理。
+
+TypeSpecifier, Typeと言う二つの構造体を使って管理しているが、今後のtypedefを見据えてどう実装すればいいのか。
+
+TypeSpecifier
+
+typedef struct TypeSpecifier {
+  char *type_name;        // "int", "char"とかの文字を保存している。
+  TokenKind token_kind;   // 列挙子 TK_INT_TYPE, TK_CHAR_TYPE
+  int len;                // 文字の長さ(int 3, char 4)
+  int size;               // バイトサイズ
+}
+
+

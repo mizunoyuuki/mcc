@@ -22,9 +22,11 @@ Token *token;
 Node *code[100];
 LVar *locals;
 TypeSpecifier type_specifiers[] = {
-    {"int",  TK_INT_TYPE,  3, 8},
-    {"char", TK_CHAR_TYPE, 4, 8},
+    {"int",  TK_INT_TYPE,  3},
+    {"char", TK_CHAR_TYPE, 4},
 };
+
+TypeRegistry *type_registry;
 
 int main(int argc, char *argv[]){
 

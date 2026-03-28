@@ -42,6 +42,7 @@ bool is_sizeof(char *p){
     return !memcmp(p, "sizeof", 6) && !is_alphabet(*(p+6));
 }
 
+// C言語デフォルトの型をトークナイズするための関数
 TypeSpecifier *is_type_specifier(char *p){
     for (int i = 0; i < sizeof(type_specifiers) / sizeof(type_specifiers[0]); i++)
         if (!memcmp(p, type_specifiers[i].type_name, type_specifiers[i].len)
