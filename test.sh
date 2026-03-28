@@ -629,5 +629,234 @@ int main(){
 	int b = 12;
 	int *c = &b;
 	return sizeof(c+2);
+}'
+
+
+assert 1 '
+int main(){
+	char a;
+	return sizeof(a);
 }
 '
+
+echo "=== char型変数 ==="
+
+  # charの基本代入と読み取り
+  assert 5 '
+  int main(){
+      char a = 5;
+      return a;
+  }
+  '
+
+  # char同士の演算
+  assert 10 '
+  int main(){
+      char a = 3;
+      char b = 7;
+      return a + b;
+  }
+  '
+
+  assert 4 '
+  int main(){
+      char a = 12;
+      char b = 8;
+      return a - b;
+  }
+  '
+
+  assert 6 '
+  int main(){
+      char a = 2;
+      char b = 3;
+      return a * b;
+  }
+  '
+
+  assert 5 '
+  int main(){
+      char a = 15;
+      char b = 3;
+      return a / b;
+  }
+  '
+
+  # charとintの混在演算
+  assert 30 '
+  int main(){
+      char a = 10;
+      int b = 20;
+      return a + b;
+  }
+  '
+
+  assert 200 '
+  int main(){
+      int a = 100;
+      char b = 2;
+      return a * b;
+  }
+  '
+
+  # char変数が隣のint変数を壊さないこと
+  assert 99 '
+  int main(){
+      int a = 99;
+      char b = 1;
+      return a;
+  }
+  '
+
+  assert 42 '
+  int main(){
+      char a = 1;
+      int b = 42;
+      return b;
+  }
+  '
+
+  # char変数が隣のchar変数を壊さないこと
+  assert 3 '
+  int main(){
+      char a = 3;
+      char b = 7;
+      return a;
+  }
+  '
+
+  assert 7 '
+  int main(){
+      char a = 3;
+      char b = 7;
+      return b;
+  }
+  '
+
+  # charの再代入
+  assert 20 '
+  int main(){
+      char a = 10;
+      a = 20;
+      return a;
+  }
+  '
+
+  # charをループで使う
+  assert 10 '
+  int main(){
+      char a = 0;
+      for (int i = 0; i < 10; i = i + 1)
+          a = a + 1;
+      return a;
+  }
+  '
+
+  # charをif条件で使う
+  assert 1 '
+  int main(){
+      char a = 5;
+      if (a == 5) return 1;
+      return 0;
+  }
+  '
+
+  # charの比較
+  assert 1 '
+  int main(){
+      char a = 3;
+      char b = 5;
+      return a < b;
+  }
+  '
+
+  echo "=== char型ポインタ ==="
+
+  # char *p でデリファレンス
+  assert 7 '
+  int main(){
+      char a = 7;
+      char *p = &a;
+      return *p;
+  }
+  '
+
+  # char *p 経由で書き込み
+  assert 50 '
+  int main(){
+      char a = 1;
+      char *p = &a;
+      *p = 50;
+      return a;
+  }
+  '
+
+  # char *を関数引数に
+  assert 33 '
+  int deref_char(char *p){ return *p; }
+  int main(){
+      char a = 33;
+      return deref_char(&a);
+  }
+  '
+
+  echo "=== sizeof(char関連) ==="
+
+  assert 1 '
+  int main(){
+      return sizeof(char);
+  }
+  '
+
+  assert 1 '
+  int main(){
+      char a = 5;
+      return sizeof(a);
+  }
+  '
+
+  assert 8 '
+  int main(){
+      char *p;
+      return sizeof(p);
+  }
+  '
+
+  assert 8 '
+  int main(){
+      char **pp;
+      return sizeof(pp);
+  }
+  '
+
+  echo "=== int/char/ptr サイズの混在確認 ==="
+
+  # sizeof が正しく型ごとに異なる値を返す
+  assert 1 '
+  int main(){
+      if (sizeof(char) == 1)
+          if (sizeof(int) == 4)
+              return 1;
+      return 0;
+  }
+  '
+
+  # 複数の異なる型変数の宣言
+  assert 55 '
+  int main(){
+      int a = 50;
+      char b = 5;
+      int *p = &a;
+      return *p + b;
+  }
+  '
+
+  # int, char, ポインタが入り混じった関数
+  assert 15 '
+  int mixed(int a, char b){
+      return a + b;
+  }
+  int main(){
+      return mixed(10, 5);
+  }
+  '
