@@ -102,6 +102,15 @@ void add_type(Node *node){
 
                 return;
             }
+            if (node->lhs->type->kind == TY_CHAR && node->rhs->type->kind == TY_CHAR){
+                Type *type = calloc(1, sizeof(Type));
+                type->kind = TY_CHAR;
+                type->size = CHAR_SIZE;
+                node->type = type;
+
+                return;
+
+            }
             break;
 
         case ND_SUB:

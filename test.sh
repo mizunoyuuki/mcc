@@ -860,3 +860,11 @@ echo "=== char型変数 ==="
       return mixed(10, 5);
   }
   '
+
+  assert 1 '
+  int main(){
+	  char a = 10;
+	  char b = 10;
+	  return sizeof(a + b);
+  }
+  '
