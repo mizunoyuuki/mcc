@@ -49,6 +49,7 @@ typedef enum {
 	TY_INT,
 	TY_CHAR,
 	TY_PTR,
+	TY_ARRAY,
 } TypeKind;
 
 typedef struct Type Type;
@@ -57,6 +58,7 @@ struct Type {
 	TypeKind kind;
 	Type *to_ptr;
 	int size;
+	int array_size;
 };
 
 // パーサーで使うような型情報配列。
