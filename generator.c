@@ -1,5 +1,4 @@
 #include"mcc.h"
-
 void gen(Node *node);
 
 void gen_lval(Node *node){
@@ -17,7 +16,9 @@ void gen_lval(Node *node){
 
 static int label_count = 0;
 
-char *farg_registers[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+char *farg_registers_64[] = {"rdi", "rsi", "rdx", "rcx", "r8", "r9"};
+char *farg_registers_32[] = {"edi", "esi", "edx", "ecx", "r8d", "r9d"};
+char *farg_registers_8[]  = {"dil", "sil", "dl",  "cl",  "r8b", "r9b"};
 
 // 現在の文法
 //
@@ -51,7 +52,14 @@ void gen (Node *node){
 			gen_lval(node);
 
 			printf("    pop rax\n");
-            printf("    mov rax, [rax]\n");
+            // raxの先で変数が保存していたデータがchar 1バイト int 4バイトとかでメモリから読み取る命令が変化する
+            if (node->type->size == 8) {
+                printf("    mov rax, [rax]\n");
+            } else if (node->type->size == 4) {
+                printf("    movsxd rax, dword ptr [rax]\n");
+            } else if (node->type->size == 1) {
+                printf("    movsx rax, byte ptr [rax]\n");
+            }
 			printf("    push rax\n");
 			return;
 
@@ -61,7 +69,16 @@ void gen (Node *node){
 
 			printf("    pop rdi\n");
 			printf("    pop rax\n");
-			printf("    mov [rax], rdi\n");
+
+            // 左辺の型のサイズ分を格納する命令に書き換える
+            int s = node->lhs->type->size;
+            if (s == 8) {
+                printf("    mov [rax], rdi\n");
+            } else if (s == 4) {
+                printf("    mov dword ptr [rax], edi\n");
+            } else if (s == 1) {
+                printf("    mov byte ptr [rax], dil\n");
+            }
 			printf("    push rdi\n");
 			return;
 		case ND_RETURN:
@@ -150,7 +167,7 @@ void gen (Node *node){
 			int i = 0;
 			for (Node *n = node->farg_body; n; n = n->next_farg){
 				gen(n);
-				printf("    pop %s\n", farg_registers[i++]);
+                printf("    pop %s\n", farg_registers_64[i++]);
 			}
 
 			printf("    mov rax, rsp\n");
@@ -185,7 +202,13 @@ void gen (Node *node){
 
 			int arg_i = 0;
 			for (Node *n = node->farg_body; n; n = n->next_farg){
-				printf("    mov [rbp-%d], %s\n", n->offset, farg_registers[arg_i++]);
+                if (n->type->size == 8) {
+                    printf("    mov [rbp-%d], %s\n", n->offset, farg_registers_64[arg_i++]);
+                } else if (n->type->size == 4) {
+                    printf("    mov [rbp-%d], %s\n", n->offset, farg_registers_32[arg_i++]);
+                } else if (n->type->size == 1) {
+                    printf("    mov [rbp-%d], %s\n", n->offset, farg_registers_8[arg_i++]);
+                }
 			}
 
 			// 本体
@@ -213,7 +236,13 @@ void gen (Node *node){
 			// *aとか、*10かをコンパイルできるようにする
 			gen(node->lhs);
 			printf("    pop rax\n");
-			printf("    mov rax, [rax]\n");
+            if (node->type->size == 8) {
+                printf("    mov rax, [rax]\n");
+            } else if (node->type->size == 4) {
+                printf("    movsxd rax, dword ptr [rax]\n");
+            } else if (node->type->size == 1) {
+                printf("    movsx rax, byte ptr [rax]\n");
+            }
             printf("    push rax\n");
             return;
 	}

@@ -257,7 +257,7 @@ int main(){
 assert 42 '
 int main(){
     int a = 42;
-    int p = &a;
+    int *p = &a;
     return *p;
 }
 '
@@ -287,7 +287,7 @@ int main(){
     int a = 5;
     int b = 7;
     int *c = &b;
-    int z = c + 1;
+    int *z = c + 1;
     return *z;
 }
 '
@@ -297,7 +297,7 @@ assert 3 '
 int main(){
     int a = 3;
     int *b = &a;
-    int *c = &b;
+    int **c = &b;
     return **c;
 }
 '
@@ -324,7 +324,7 @@ int main(){
 assert 99 '
 int main(){
      int a = 1;
-     int p = &a;
+     int *p = &a;
      *p = 99;
      return a;
  }
@@ -529,7 +529,7 @@ int main(){
 }
 '
 
-assert 8 '
+assert 4 '
 int main(){
 	int a;
 	return sizeof(a);
@@ -543,21 +543,21 @@ int main(){
 }
 '
 
-assert 8 '
+assert 4 '
 int main(){
 	int a = 42;
 	return sizeof(a);
 }
 '
 
-assert 16 '
+assert 8 '
 int main(){
 	int a;
 	return sizeof(a) + sizeof(a);
 }
 '
 
-assert 8 '
+assert 4 '
 int main(){
 	int a;
 	int b = sizeof(a);
@@ -568,7 +568,7 @@ int main(){
 assert 1 '
 int main(){
 	int a;
-	if (sizeof(a) == 8) return 1;
+	if (sizeof(a) == 4) return 1;
 	return 0;
 }
 '
@@ -577,7 +577,7 @@ assert 10 '
 int main(){
 	int a;
 	a = 10;
-	if (sizeof(int) == 8){
+	if (sizeof(int) == 4){
 		return a;
 	} else {
 		return 12;
@@ -599,13 +599,13 @@ int main(){
 }
 '
 
-assert 8 '
+assert 4 '
 int main(){
 	return sizeof(1 + 5);
 }
 '
 
-assert 8 '
+assert 4 '
 int main(){
 	int a = 8;
 	int b = 12;
@@ -614,7 +614,7 @@ int main(){
 }
 '
 
-assert 8 '
+assert 4 '
 int main(){
 	int a = 8;
 	int b = 12;
