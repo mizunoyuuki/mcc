@@ -158,6 +158,7 @@ extern Token *token;
 extern Node *code[100];
 extern LVar *locals;
 extern TypeSpecifier type_specifiers[2];
+extern TypeRegistry *type_registry;
 
 // type.cで、parse.cで定義した関数を使いたくなる。他にもありそうなので、optimizeでも使うと思う.
 extern Node *new_node(NodeKind kind, Node *lhs, Node *rhs);

@@ -17,6 +17,8 @@ void program(void);
 void add_type(Node*);
 Node* optimize(Node*);
 
+void initialize_type_registry(void);
+
 // 現在のtokenの外部変数
 Token *token;
 Node *code[100];
@@ -25,8 +27,6 @@ TypeSpecifier type_specifiers[] = {
     {"int",  TK_INT_TYPE,  3},
     {"char", TK_CHAR_TYPE, 4},
 };
-
-TypeRegistry *type_registry;
 
 int main(int argc, char *argv[]){
 
@@ -37,6 +37,7 @@ int main(int argc, char *argv[]){
 
     // 字句解析: Tokenリスト作成
     token = tokenize(argv[1]);
+    initialize_type_registry();
     // 構文解析: AST作成
 	program();
     // 意味解析: 全てのノードに型を付与
