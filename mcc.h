@@ -5,6 +5,10 @@
 #include<stdarg.h>
 #include<string.h>
 
+#define PTR_SIZE 8
+#define INT_SIZE 4
+#define CHAR_SIZE 1
+
 // tokenの種類
 typedef enum {
 	TK_RESERVED,  // 記号

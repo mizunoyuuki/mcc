@@ -8,22 +8,22 @@ TypeRegistry *type_registry;
 // ベース型を先に登録しておく
 void initialize_type_registry(){
     // int型
-    TypeRegistry *cur_type_regi = calloc(1, sizeof(TypeRegistry));
+    TypeRegistry *cur_type_regi = calloc(1, TypeRegistry);
     cur_type_regi->name = "int";
     cur_type_regi->name_len = 3;
     Type *type = calloc(1, sizeof(Type));
     type->kind = TY_INT;
     type->size = 4;
-    cur_type_regi->type = type;
+    cur_type_line->type = type;
     type_registry =  cur_type_regi;
 
     // char型
-    cur_type_regi = calloc(1, sizeof(TypeRegistry));
+    cur_type_regi = calloc(1, TypeRegistry);
     cur_type_regi->name = "char";
     cur_type_regi->name_len = 4;
-    type = calloc(1, sizeof(Type));
+    Type *type = calloc(1, sizeof(Type));
     type->kind = TY_CHAR;
     type->size = 1;
-    cur_type_regi->type = type;
-    type_registry->next = cur_type_regi;
+    cur_type_line->type = type;
+    type_registry->next = curt_type_regi;
 }

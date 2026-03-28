@@ -1,6 +1,4 @@
 #include"mcc.h"
-#define INT_SIZE 8
-#define POINTER_SIZE 8
 
 //
 // めっちゃマンパワーゾーンだった。
@@ -70,7 +68,7 @@ void add_type(Node *node){
                 Type *head = calloc(1, sizeof(Type));
                 Type *cur = head;
                 cur->kind = TY_PTR;
-                cur->size = POINTER_SIZE;
+                cur->size = PTR_SIZE;
                 cur->to_ptr = calloc(1, sizeof(Type));
                 cur = cur->to_ptr;
                 cur->size = INT_SIZE;

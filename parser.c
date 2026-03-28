@@ -1,5 +1,4 @@
 #include"mcc.h"
-#define PTR_SIZE 8
 
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs){
 	Node *node = calloc(1, sizeof(Node));
@@ -15,7 +14,7 @@ Node *new_node_num(int val){
 	node->val = val;
     Type *type = calloc(1, sizeof(Type));
     type->kind = TY_INT;
-    type->size = 8;
+    type->size = INT_SIZE;
     node->type = type;
 
 	return node;
@@ -554,32 +553,32 @@ Token *consume_ident(){
 
 }
 
-TypeSpecifier *find_type_specifier(TokenKind tk){
-    int size = sizeof(type_specifiers) / sizeof(TypeSpecifier);
-
-    for(int i = 0; i < size; i++ ){
-        if (type_specifiers[i].token_kind == tk)
-            return &type_specifiers[i];
+TypeRegistry *find_type_specifier(Token *tk){
+    for(type_registry; type_registry; type_registry = type_registry->next ){
+        if (memcmp(tk->str, type_registry->name, tk->len));
+            return type_registry;
     }
     return NULL;
 }
 
+// sizeof演算子でしか使わない。
 int consume_type_size(){
 
     TokenKind tk = token->kind;
     if (tk != TK_INT_TYPE && tk != TK_CHAR_TYPE)
         return -1;
 
-    TypeSpecifier *ts = find_type_specifier(tk);
+    // tokenの名前から、TypeRegisterを探しに行こうか。🤔
+    TypeRegistry *tr = find_type_specifier(token);
     token = token->next;
 
     // ポインタ型なら常に8バイト
     if (consume("*")){
         while (consume("*")) {}
-        return 8;  // PTR_SIZE
+        return PTR_SIZE;  // PTR_SIZE
     }
 
-    return ts->size;
+    return tr->type->size;
 }
 
 
