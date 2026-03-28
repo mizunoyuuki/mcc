@@ -561,7 +561,7 @@ Token *consume_ident(){
 
 TypeRegistry *find_type_specifier(Token *tk){
     for(type_registry; type_registry; type_registry = type_registry->next ){
-        if (memcmp(tk->str, type_registry->name, tk->len));
+        if (memcmp(tk->str, type_registry->name, tk->len) == 0)
             return type_registry;
     }
     return NULL;
