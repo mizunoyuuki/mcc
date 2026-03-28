@@ -502,8 +502,13 @@ Node *parse_declaration(){
         cur_type = cur_type->to_ptr;
     }
     // cur_type:ptr => cur_type:引数で受け取った
+    // identのtypeの種類によって、Nodeに紐づけるType構造体のsizeを切り替える。int=4, char=1, ptr=8;
     cur_type->kind = ident_type;
-    cur_type->size = 8;
+    if (ident_type == TY_INT){
+        cur_type->size = 4;
+    } else if (ident_type == TY_CHAR){
+        cur_type->size = 1;
+    }
 
 	Token *ident_tok = consume_ident();
 	if (!ident_tok){
@@ -522,7 +527,8 @@ Node *parse_declaration(){
 	lvar->name = ident_tok->str;
 	lvar->len = ident_tok->len;
     lvar->type = head_type;
-	lvar->offset = locals ? locals->offset + 8 : 8;
+    // ptrならhead_t
+	lvar->offset = locals ? locals->offset + head_type->size : head_type->size;
 	locals = lvar;
 
 	// 初期化式があるか
