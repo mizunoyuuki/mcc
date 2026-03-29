@@ -389,6 +389,11 @@ Node *primary(){
 		node->offset = lvar->offset;
         node->type   = lvar->type;
         node->is_array = (lvar->type->kind == TY_ARRAY);
+        if (consume("[")){
+            Node *index = expr();
+            expect("]");
+            return new_node(ND_DEREF, new_node(ND_ADD, node, index), NULL);
+        }
 		return node;
 	}
 

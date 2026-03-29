@@ -1316,3 +1316,21 @@ int main(){
     return 0;
 }
 '
+
+  assert 3 '
+  int main(){
+      int a[2];
+      a[0] = 1;
+      a[1] = 2;
+      return a[0] + a[1];
+  }
+  '
+
+assert 3 '
+  int main(){
+      int a[2];
+      a[1] = 1;
+      a[1] = 2;
+      return a[0] + a[1];
+  }
+  '
