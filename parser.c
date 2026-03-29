@@ -559,7 +559,7 @@ Token *consume_ident(){
 
 }
 
-TypeRegistry *find_type_specifier(Token *tk){
+TypeRegistry *find_type_registry(Token *tk){
     for(TypeRegistry *cur = type_registry; cur; cur = cur->next){
         if (memcmp(tk->str, cur->name, tk->len) == 0)
             return cur;
@@ -575,7 +575,7 @@ int consume_type_size(){
         return -1;
 
     // tokenの名前から、TypeRegisterを探しに行こうか。🤔
-    TypeRegistry *tr = find_type_specifier(token);
+    TypeRegistry *tr = find_type_registry(token);
     token = token->next;
 
     // ポインタ型なら常に8バイト
