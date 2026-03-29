@@ -504,11 +504,6 @@ Node *parse_declaration(){
     // cur_type:ptr => cur_type:引数で受け取った
     // identのtypeの種類によって、Nodeに紐づけるType構造体のsizeを切り替える。int=4, char=1, ptr=8;
     cur_type->kind = ident_type;
-    if (ident_type == TY_INT){
-        cur_type->size = 4;
-    } else if (ident_type == TY_CHAR){
-        cur_type->size = 1;
-    }
 
 	Token *ident_tok = consume_ident();
 	if (!ident_tok){
@@ -520,6 +515,38 @@ Node *parse_declaration(){
 	if (lvar){
 		error("変数が二重に定義されています。");
 	}
+
+    // 配列の場合と、普通の変数の場合でサイズをかえる
+    if (consume("[")){
+        int size;
+        if (ident_type == TY_INT){
+            size = 4;
+        } else if (ident_type == TY_CHAR){
+            size = 1;
+        }
+
+        int index = token->val;
+        if (!index){
+            error("配列の要素を指定してください");
+        }
+        // 数字を読んだのでトークンを進める.
+        token = token->next;
+
+        Type *array_type = calloc(1, sizeof(Type));
+        array_type->kind = TY_ARRAY;
+        array_type->to_ptr = cur_type;
+        array_type->array_size = size;
+        array_type->size = size * index;
+        head_type = array_type;
+
+        expect("]");
+    } else {
+        if (ident_type == TY_INT){
+            cur_type->size = 4;
+        } else if (ident_type == TY_CHAR){
+            cur_type->size = 1;
+        }
+    }
 
 	// localsに登録
 	lvar = calloc(1, sizeof(LVar));

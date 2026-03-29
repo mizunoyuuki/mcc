@@ -860,3 +860,207 @@ echo "=== char型変数 ==="
       return mixed(10, 5);
   }
   '
+
+echo "=== 配列の定義 ==="
+
+# 基本: int配列の宣言（クラッシュしないこと）
+assert 0 '
+int main(){
+    int a[5];
+    return 0;
+}
+'
+
+# 基本: char配列の宣言（クラッシュしないこと）
+assert 0 '
+int main(){
+    char a[10];
+    return 0;
+}
+'
+
+# 配列の前後の変数が壊れないこと（前の変数を読む）
+assert 5 '
+int main(){
+    int a = 5;
+    int b[10];
+    return a;
+}
+'
+
+# 配列の前後の変数が壊れないこと（後の変数を読む）
+assert 10 '
+int main(){
+    int a = 5;
+    int b[10];
+    int c = 10;
+    return c;
+}
+'
+
+# 配列の前の変数にポインタ経由でアクセス（オフセット検証）
+# a: offset=4, b[10]: offset=44, c: offset=48
+# &c + 11 = &c + 11*4bytes = rbp-48 + 44 = rbp-4 = &a
+assert 5 '
+int main(){
+    int a = 5;
+    int b[10];
+    int c = 10;
+    return *(&c+11);
+}
+'
+
+# 配列だけの宣言で他の変数なし
+assert 0 '
+int main(){
+    int arr[3];
+    return 0;
+}
+'
+
+# char配列の前後の変数が壊れないこと
+assert 42 '
+int main(){
+    int x = 42;
+    char buf[20];
+    int y = 99;
+    return x;
+}
+'
+
+assert 99 '
+int main(){
+    int x = 42;
+    char buf[20];
+    int y = 99;
+    return y;
+}
+'
+
+# 複数の配列を宣言
+assert 0 '
+int main(){
+    int a[5];
+    int b[3];
+    return 0;
+}
+'
+
+# 複数の配列と変数の混在
+assert 7 '
+int main(){
+    int x = 7;
+    int a[5];
+    int y = 13;
+    int b[3];
+    int z = 21;
+    return x;
+}
+'
+
+assert 13 '
+int main(){
+    int x = 7;
+    int a[5];
+    int y = 13;
+    int b[3];
+    int z = 21;
+    return y;
+}
+'
+
+assert 21 '
+int main(){
+    int x = 7;
+    int a[5];
+    int y = 13;
+    int b[3];
+    int z = 21;
+    return z;
+}
+'
+
+# sizeof で配列の合計サイズが正しいか（int[10] = 40バイト、40>255なので比較で確認）
+assert 1 '
+int main(){
+    int a[10];
+    if (sizeof(a) == 40) return 1;
+    return 0;
+}
+'
+
+# sizeof(int[5]) = 20バイト
+assert 1 '
+int main(){
+    int a[5];
+    if (sizeof(a) == 20) return 1;
+    return 0;
+}
+'
+
+# sizeof(char[10]) = 10バイト
+assert 10 '
+int main(){
+    char a[10];
+    return sizeof(a);
+}
+'
+
+# sizeof(char[1]) = 1バイト
+assert 1 '
+int main(){
+    char a[1];
+    return sizeof(a);
+}
+'
+
+# sizeof(int[1]) = 4バイト
+assert 4 '
+int main(){
+    int a[1];
+    return sizeof(a);
+}
+'
+
+# 配列宣言がforループ内の変数と干渉しないこと
+assert 10 '
+int main(){
+    int arr[5];
+    int sum = 0;
+    for (int i = 0; i < 5; i = i + 1)
+        sum = sum + 2;
+    return sum;
+}
+'
+
+# 配列宣言が関数引数と干渉しないこと
+assert 30 '
+int f(int x){
+    int buf[10];
+    return x;
+}
+int main(){
+    return f(30);
+}
+'
+
+# 配列宣言 + ポインタ変数の共存
+assert 77 '
+int main(){
+    int a = 77;
+    int arr[5];
+    int *p = &a;
+    return *p;
+}
+'
+
+# 配列の後に宣言した変数にポインタ経由で書き込み
+assert 55 '
+int main(){
+    int arr[3];
+    int a = 0;
+    int *p = &a;
+    *p = 55;
+    return a;
+}
+'
