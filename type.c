@@ -1,5 +1,17 @@
 #include"mcc.h"
 
+// ノードが配列型だった場合は、ポインタ型に上書きする。
+void array_decay(Node *node){
+    if (node == NULL) return;
+    if (node->type == NULL) return;
+    if (node->type->kind != TY_ARRAY) return;
+
+    Type *ptr = calloc(1, sizeof(Type));
+    ptr->kind = TY_PTR;
+    ptr->size = PTR_SIZE;
+    ptr->to_ptr = node->type->to_ptr;
+    node->type = ptr;
+}
 //
 // めっちゃマンパワーゾーンだった。
 void add_type(Node *node){
@@ -50,6 +62,12 @@ void add_type(Node *node){
     add_type(node->lhs);
     add_type(node->rhs);
 
+    // sizeofオペランド, &オペランドだけ配列のままで、それ以外はポインタ型にdecayする。
+    if (node->kind != ND_SIZEOF && node->kind != ND_ADDR){
+          array_decay(node->lhs);
+          array_decay(node->rhs);
+    }
+
     switch (node->kind){
         case ND_ADD:
             // &a + 1; とか片方がND_NUMの時は、コンパイル時に&aがintのポインタ型であれば1*4とかに変換できる。
@@ -71,13 +89,13 @@ void add_type(Node *node){
                 cur->size = PTR_SIZE;
                 cur->to_ptr = calloc(1, sizeof(Type));
                 cur = cur->to_ptr;
-                cur->size = INT_SIZE;
-                cur->kind = TY_INT;
+                cur->size = node->lhs->type->to_ptr->size;
+                cur->kind = node->lhs->type->to_ptr->kind;
                 node->type = head;
 
                 // &x + 1 といったポインタ変数　+ NUMの計算になる。
                 Node *tmp = node->rhs;
-                node->rhs = new_node(ND_MUL, tmp, new_node_num(INT_SIZE));
+                node->rhs = new_node(ND_MUL, tmp, new_node_num(node->lhs->type->to_ptr->size));
                 add_type(node->rhs);
 
                 return;

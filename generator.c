@@ -52,6 +52,13 @@ void gen (Node *node){
 			gen_lval(node);
 
 			printf("    pop rax\n");
+
+            // 配列を普通の演算子として使う場合は、offset自体がアドレスになっている。
+            if (node->is_array == true){
+                printf("    push rax\n");
+                return;
+            }
+
             // raxの先で変数が保存していたデータがchar 1バイト int 4バイトとかでメモリから読み取る命令が変化する
             if (node->type->size == 8) {
                 printf("    mov rax, [rax]\n");

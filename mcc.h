@@ -145,6 +145,10 @@ struct Node {
 	Node *sizeof_target;
 	int  sizeof_val;
 
+	// この変数が配列型かどうか
+	bool is_array;
+	
+
 	int val;       // kindがND_NUMの場合のみ扱う
         int offset;    // kindがND_LVARの場合のみ使う
 };
@@ -170,4 +174,5 @@ extern TypeRegistry *type_registry;
 extern Node *new_node(NodeKind kind, Node *lhs, Node *rhs);
 extern Node *new_node_num(int val);
 
+extern void array_decay(Node*);
 extern void error(char*, ...);

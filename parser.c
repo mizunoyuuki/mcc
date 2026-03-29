@@ -388,6 +388,7 @@ Node *primary(){
 		}
 		node->offset = lvar->offset;
         node->type   = lvar->type;
+        node->is_array = (lvar->type->kind == TY_ARRAY);
 		return node;
 	}
 
@@ -532,6 +533,7 @@ Node *parse_declaration(){
         // 数字を読んだのでトークンを進める.
         token = token->next;
 
+        cur_type->size = size;
         Type *array_type = calloc(1, sizeof(Type));
         array_type->kind = TY_ARRAY;
         array_type->to_ptr = cur_type;
@@ -571,6 +573,10 @@ Node *parse_declaration(){
 	Node *node = calloc(1, sizeof(Node));
 	node->kind = ND_LVAR;
 	node->offset = lvar->offset;
+    // 配列型の場合は、is_arrayにtrueを入れるようにする。
+    if (head_type->kind == TY_ARRAY) {
+        node->is_array = true;
+    }
     node->type = head_type;
 	return node;
 }

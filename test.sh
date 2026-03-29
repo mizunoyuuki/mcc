@@ -1071,3 +1071,248 @@ int main(){
 	  return sizeof(a + b);
   }
   '
+
+echo "=== 配列からポインタへの暗黙変換 ==="
+
+# 基本: *a で先頭要素に書き込み・読み取り
+assert 1 '
+int main(){
+    int a[2];
+    *a = 1;
+    return *a;
+}
+'
+
+# *(a+1) で2番目の要素にアクセス
+assert 2 '
+int main(){
+    int a[2];
+    *a = 1;
+    *(a + 1) = 2;
+    return *(a + 1);
+}
+'
+
+# 配列をポインタ変数に代入して使う（p = a）
+assert 3 '
+int main(){
+    int a[2];
+    *a = 1;
+    *(a + 1) = 2;
+    int *p;
+    p = a;
+    return *p + *(p + 1);
+}
+'
+
+# 配列の先頭要素のデリファレンスで書き込み
+assert 42 '
+int main(){
+    int a[3];
+    *a = 42;
+    *(a + 1) = 10;
+    *(a + 2) = 20;
+    return *a;
+}
+'
+
+# 配列の各要素の合計
+assert 60 '
+int main(){
+    int a[3];
+    *a = 10;
+    *(a + 1) = 20;
+    *(a + 2) = 30;
+    return *a + *(a + 1) + *(a + 2);
+}
+'
+
+# ポインタ変数にdecayした配列を代入し、ポインタ算術で全要素アクセス
+assert 6 '
+int main(){
+    int a[3];
+    *a = 1;
+    *(a + 1) = 2;
+    *(a + 2) = 3;
+    int *p = a;
+    return *p + *(p + 1) + *(p + 2);
+}
+'
+
+# decayしてもsizeofは配列全体のサイズを返すこと
+assert 1 '
+int main(){
+    int a[5];
+    if (sizeof(a) == 20) return 1;
+    return 0;
+}
+'
+
+# 配列の前後の変数を壊さないこと
+assert 99 '
+int main(){
+    int x = 99;
+    int a[3];
+    *a = 10;
+    *(a + 1) = 20;
+    *(a + 2) = 30;
+    return x;
+}
+'
+
+assert 77 '
+int main(){
+    int a[3];
+    *a = 10;
+    *(a + 1) = 20;
+    *(a + 2) = 30;
+    int y = 77;
+    return y;
+}
+'
+
+# 配列の前後の変数両方が無事であること
+assert 176 '
+int main(){
+    int x = 99;
+    int a[3];
+    *a = 10;
+    *(a + 1) = 20;
+    *(a + 2) = 30;
+    int y = 77;
+    return x + y;
+}
+'
+
+# char配列のdecay
+assert 3 '
+int main(){
+    char a[3];
+    *a = 1;
+    *(a + 1) = 2;
+    *(a + 2) = 3;
+    char *p = a;
+    return *p + *(p + 1);
+}
+'
+
+# char配列の全要素合計
+assert 6 '
+int main(){
+    char a[3];
+    *a = 1;
+    *(a + 1) = 2;
+    *(a + 2) = 3;
+    return *a + *(a + 1) + *(a + 2);
+}
+'
+
+# 配列をforループで初期化・合計
+assert 10 '
+int main(){
+    int a[5];
+    for (int i = 0; i < 5; i = i + 1)
+        *(a + i) = 2;
+    int sum = 0;
+    for (int j = 0; j < 5; j = j + 1)
+        sum = sum + *(a + j);
+    return sum;
+}
+'
+
+# 配列をforループでインデックスごとに異なる値を設定
+assert 10 '
+int main(){
+    int a[5];
+    for (int i = 0; i < 5; i = i + 1)
+        *(a + i) = i;
+    return *(a + 0) + *(a + 1) + *(a + 2) + *(a + 3) + *(a + 4);
+}
+'
+
+# 関数引数として配列をポインタで受け取る
+assert 15 '
+int sum(int *p){
+    return *p + *(p + 1) + *(p + 2);
+}
+int main(){
+    int a[3];
+    *a = 3;
+    *(a + 1) = 5;
+    *(a + 2) = 7;
+    return sum(a);
+}
+'
+
+# 関数内でポインタ経由で配列を書き換え
+assert 99 '
+int set_first(int *p){
+    *p = 99;
+    return 0;
+}
+int main(){
+    int a[3];
+    *a = 0;
+    set_first(a);
+    return *a;
+}
+'
+
+# 複数の配列が独立していること
+assert 30 '
+int main(){
+    int a[2];
+    int b[2];
+    *a = 10;
+    *(a + 1) = 20;
+    *b = 100;
+    *(b + 1) = 200;
+    return *a + *(a + 1);
+}
+'
+
+assert 30 '
+int main(){
+    int a[2];
+    int b[2];
+    *a = 10;
+    *(a + 1) = 20;
+    *b = 10;
+    *(b + 1) = 20;
+    return *b + *(b + 1);
+}
+'
+
+# 配列とポインタ変数の共存
+assert 42 '
+int main(){
+    int a[3];
+    *a = 42;
+    int *p = a;
+    int *q = a;
+    return *q;
+}
+'
+
+# ポインタ変数で配列の途中を指す
+assert 20 '
+int main(){
+    int a[3];
+    *a = 10;
+    *(a + 1) = 20;
+    *(a + 2) = 30;
+    int *p = a + 1;
+    return *p;
+}
+'
+
+# 配列を使った条件分岐
+assert 1 '
+int main(){
+    int a[2];
+    *a = 10;
+    *(a + 1) = 20;
+    if (*a == 10) return 1;
+    return 0;
+}
+'
