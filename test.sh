@@ -1064,3 +1064,10 @@ int main(){
     return a;
 }
 '
+  assert 1 '
+  int main(){
+	  char a = 10;
+	  char b = 10;
+	  return sizeof(a + b);
+  }
+  '
