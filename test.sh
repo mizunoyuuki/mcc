@@ -1326,11 +1326,21 @@ int main(){
   }
   '
 
-assert 3 '
+assert 2 '
   int main(){
       int a[2];
       a[1] = 1;
       a[1] = 2;
+      return a[0] + a[1];
+  }
+  '
+
+assert 42 '
+  int main(){
+      int a[2];
+      a[1] = 1;
+      a[1] = 2;
+      a[1] = 42;
       return a[0] + a[1];
   }
   '
