@@ -6,12 +6,19 @@ void gen_lval(Node *node){
         gen(node->lhs);
         return;
     }
-	if (node->kind != ND_LVAR)
+	if (node->kind != ND_LVAR && node->kind != ND_GVAR)
 		error ("代入の左辺値が変数, デリファレンスポインタではありません");
 
-	printf("    mov rax, rbp\n");
-	printf("    sub rax, %d\n", node->offset);
-	printf("    push rax\n");
+    if (node->kind == ND_LVAR){
+        printf("    mov rax, rbp\n");
+        printf("    sub rax, %d\n", node->offset);
+        printf("    push rax\n");
+        return;
+    } else if (node->kind == ND_GVAR){
+        printf("    lea rax, [rip + %.*s]\n", node->gvar_len, node->gvar_name);
+        printf("    push rax\n");
+        return;
+    }
 }
 
 static int label_count = 0;
@@ -71,6 +78,7 @@ void gen (Node *node){
 			return;
 
 		case ND_ASSIGN:
+            // グローバル変数の時と、ローカル変数の時で扱いを変える。
 			gen_lval(node->lhs);
 			gen(node->rhs);
 
@@ -230,6 +238,20 @@ void gen (Node *node){
 			printf("    ret\n");
 
 			return;
+
+        case ND_GVAR:
+            // .dataセクションに切り替え
+            gen_lval(node);
+            printf("    pop rax\n");
+            if (node->type->size == 8) {
+                printf("    mov rax, [rax]\n");
+            } else if (node->type->size == 4) {
+                printf("    movsxd rax, dword ptr [rax]\n");
+            } else if (node->type->size == 1) {
+                printf("    movsx rax, byte ptr [rax]\n");
+            }
+            printf("    push rax\n");
+            return;
 
 		case ND_ADDR:
 			// lhsにunary()のノードが入ってる。

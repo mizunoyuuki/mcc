@@ -1345,3 +1345,488 @@ assert 42 '
       return a[0] + a[1];
   }
   '
+
+
+echo "=== グローバル変数 ==="
+
+# 宣言のみ（クラッシュしないこと）
+assert 1 '
+int a;
+int main(){
+    return 1;
+}
+'
+
+# 代入して読み取り
+assert 42 '
+int a;
+int main(){
+    a = 42;
+    return a;
+}
+'
+
+# ゼロ初期化されていること
+assert 0 '
+int a;
+int main(){
+    return a;
+}
+'
+
+# 複数のグローバル変数
+assert 30 '
+int a;
+int b;
+int main(){
+    a = 10;
+    b = 20;
+    return a + b;
+}
+'
+
+# グローバル変数同士の演算
+assert 6 '
+int x;
+int y;
+int main(){
+    x = 2;
+    y = 3;
+    return x * y;
+}
+'
+
+# グローバル変数の再代入
+assert 99 '
+int a;
+int main(){
+    a = 10;
+    a = 99;
+    return a;
+}
+'
+
+# グローバル変数をループで使う
+assert 10 '
+int a;
+int main(){
+    a = 0;
+    for (int i = 0; i < 10; i = i + 1)
+        a = a + 1;
+    return a;
+}
+'
+
+# グローバル変数をif条件で使う
+assert 1 '
+int a;
+int main(){
+    a = 5;
+    if (a == 5) return 1;
+    return 0;
+}
+'
+
+# グローバル変数をwhile文で使う
+assert 5 '
+int a;
+int main(){
+    a = 0;
+    while (a < 5)
+        a = a + 1;
+    return a;
+}
+'
+
+# グローバル変数とローカル変数の共存
+assert 30 '
+int g;
+int main(){
+    g = 10;
+    int l = 20;
+    return g + l;
+}
+'
+
+# ローカル変数がグローバル変数を壊さないこと
+assert 10 '
+int g;
+int main(){
+    g = 10;
+    int a = 99;
+    int b = 77;
+    return g;
+}
+'
+
+# 関数間でグローバル変数を共有
+assert 42 '
+int g;
+int set_g(){
+    g = 42;
+    return 0;
+}
+int main(){
+    set_g();
+    return g;
+}
+'
+
+# 別の関数でグローバル変数を変更して読み取り
+assert 100 '
+int counter;
+int inc_counter(){
+    counter = counter + 10;
+    return 0;
+}
+int main(){
+    counter = 0;
+    for (int i = 0; i < 10; i = i + 1)
+        inc_counter();
+    return counter;
+}
+'
+
+# 複数のグローバル変数を複数の関数で使う
+assert 15 '
+int x;
+int y;
+int set_x(){ x = 5; return 0; }
+int set_y(){ y = 10; return 0; }
+int main(){
+    set_x();
+    set_y();
+    return x + y;
+}
+'
+
+# グローバル変数を関数の戻り値に使う
+assert 7 '
+int g;
+int get_g(){ return g; }
+int main(){
+    g = 7;
+    return get_g();
+}
+'
+
+# グローバル変数を式の中で使う
+assert 25 '
+int a;
+int b;
+int main(){
+    a = 10;
+    b = 15;
+    int c = a + b;
+    return c;
+}
+'
+
+# char型グローバル変数
+assert 5 '
+char c;
+int main(){
+    c = 5;
+    return c;
+}
+'
+
+# char型グローバル変数の演算
+assert 15 '
+char a;
+char b;
+int main(){
+    a = 7;
+    b = 8;
+    return a + b;
+}
+'
+
+# int と char のグローバル変数の混在
+assert 50 '
+int a;
+char b;
+int main(){
+    a = 40;
+    b = 10;
+    return a + b;
+}
+'
+
+echo "=== グローバル変数（複合テスト） ==="
+
+# グローバル変数 + sizeof
+assert 4 '
+int g;
+int main(){
+    return sizeof(g);
+}
+'
+
+assert 1 '
+char g;
+int main(){
+    return sizeof(g);
+}
+'
+
+# sizeof(グローバル変数) を式の中で使う
+assert 8 '
+int g;
+int main(){
+    return sizeof(g) + sizeof(g);
+}
+'
+
+# sizeof(グローバル変数) を条件分岐で使う
+assert 1 '
+int g;
+int main(){
+    if (sizeof(g) == 4) return 1;
+    return 0;
+}
+'
+
+# グローバル変数 + ポインタ（アドレス取得・デリファレンス）
+assert 42 '
+int g;
+int main(){
+    g = 42;
+    int *p = &g;
+    return *p;
+}
+'
+
+# ポインタ経由でグローバル変数に書き込み
+assert 99 '
+int g;
+int main(){
+    g = 0;
+    int *p = &g;
+    *p = 99;
+    return g;
+}
+'
+
+# グローバル変数のアドレスを関数に渡す
+assert 77 '
+int g;
+int write_ptr(int *p){
+    *p = 77;
+    return 0;
+}
+int main(){
+    g = 0;
+    write_ptr(&g);
+    return g;
+}
+'
+
+# グローバル変数のアドレスを関数引数で受け取ってデリファレンス
+assert 55 '
+int g;
+int read_ptr(int *p){
+    return *p;
+}
+int main(){
+    g = 55;
+    return read_ptr(&g);
+}
+'
+
+# グローバル変数 + while + ポインタ
+assert 50 '
+int g;
+int main(){
+    g = 0;
+    int *p = &g;
+    while (g < 50)
+        *p = *p + 10;
+    return g;
+}
+'
+
+# グローバル変数 + for + ポインタ
+assert 20 '
+int g;
+int main(){
+    g = 0;
+    int *p = &g;
+    for (int i = 0; i < 5; i = i + 1)
+        *p = *p + 4;
+    return g;
+}
+'
+
+# グローバル変数 + if + ポインタ
+assert 1 '
+int g;
+int main(){
+    g = 42;
+    int *p = &g;
+    if (*p == 42) return 1;
+    return 0;
+}
+'
+
+# グローバル変数 + 二重ポインタ
+assert 10 '
+int g;
+int main(){
+    g = 10;
+    int *p = &g;
+    int **pp = &p;
+    return **pp;
+}
+'
+
+# 二重ポインタ経由でグローバル変数に書き込み
+assert 88 '
+int g;
+int main(){
+    g = 0;
+    int *p = &g;
+    int **pp = &p;
+    **pp = 88;
+    return g;
+}
+'
+
+# char型グローバル変数 + ポインタ
+assert 33 '
+char g;
+int main(){
+    g = 33;
+    char *p = &g;
+    return *p;
+}
+'
+
+# char型グローバル変数にポインタ経由で書き込み
+assert 77 '
+char g;
+int main(){
+    g = 0;
+    char *p = &g;
+    *p = 77;
+    return g;
+}
+'
+
+# グローバル変数 + ローカル変数 + ポインタの混在
+assert 30 '
+int g;
+int main(){
+    g = 10;
+    int l = 20;
+    int *pg = &g;
+    int *pl = &l;
+    return *pg + *pl;
+}
+'
+
+# グローバル変数をループカウンタ的に使う + sizeof で条件分岐
+assert 40 '
+int g;
+int main(){
+    g = 0;
+    if (sizeof(g) == 4){
+        for (int i = 0; i < 10; i = i + 1)
+            g = g + 4;
+    }
+    return g;
+}
+'
+
+# 複数グローバル変数 + 関数 + ポインタ + while
+assert 30 '
+int x;
+int y;
+int swap_via_ptr(int *a, int *b){
+    int tmp = *a;
+    *a = *b;
+    *b = tmp;
+    return 0;
+}
+int main(){
+    x = 20;
+    y = 10;
+    swap_via_ptr(&x, &y);
+    return x + y;
+}
+'
+
+# swap後の値が入れ替わっていること
+assert 10 '
+int x;
+int y;
+int swap_via_ptr(int *a, int *b){
+    int tmp = *a;
+    *a = *b;
+    *b = tmp;
+    return 0;
+}
+int main(){
+    x = 20;
+    y = 10;
+    swap_via_ptr(&x, &y);
+    return x;
+}
+'
+
+assert 20 '
+int x;
+int y;
+int swap_via_ptr(int *a, int *b){
+    int tmp = *a;
+    *a = *b;
+    *b = tmp;
+    return 0;
+}
+int main(){
+    x = 20;
+    y = 10;
+    swap_via_ptr(&x, &y);
+    return y;
+}
+'
+
+# グローバル変数を使った再帰的なカウント
+assert 10 '
+int g;
+int count_up(){
+    if (g >= 10) return g;
+    g = g + 1;
+    return count_up();
+}
+int main(){
+    g = 0;
+    return count_up();
+}
+'
+
+# グローバル変数 + ローカル配列 + ポインタの複合
+assert 60 '
+int g;
+int main(){
+    int arr[3];
+    *arr = 10;
+    *(arr + 1) = 20;
+    *(arr + 2) = 30;
+    g = *arr + *(arr + 1) + *(arr + 2);
+    return g;
+}
+'
+
+# グローバル変数を条件に使ったwhileループ + ポインタ書き込み
+assert 100 '
+int g;
+int main(){
+    g = 0;
+    int *p = &g;
+    while (*p < 100){
+        *p = *p + 5;
+    }
+    return g;
+}
+'

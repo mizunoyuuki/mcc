@@ -16,8 +16,7 @@ Node *new_node_num(int val){
     type->kind = TY_INT;
     type->size = INT_SIZE;
     node->type = type;
-
-	return node;
+    return node;
 }
 
 // 現在の文法
@@ -44,6 +43,8 @@ Node *new_node_num(int val){
 //
 
 // 関数の宣言
+Node *top();
+Node *globl_var(Token*, Token*);
 Node *funcdef();
 Node *stmt();
 Node *expr();
@@ -54,12 +55,14 @@ Node *add();
 Node *mul();
 Node *primary();
 Node *unary();
+Node *parse_globl_declaration(Token*, Token*);
 Node *parse_declaration(void);
-bool is_type_keyword();
+Token *type_keyword();
 bool consume(char*);
 void expect(char*);
 int expect_number();
 bool at_eof();
+GVar *find_gvar(Token *);
 LVar *find_lvar(Token *);
 
 Token *consume_ident(void);
@@ -74,7 +77,7 @@ bool consume_sizeof(char *op);
 void program(){
 	int i = 0;
 	while (!at_eof()){
-		code[i++] = funcdef();
+		code[i++] = top();
 	}
 
 	code[i] = NULL;
@@ -82,19 +85,43 @@ void program(){
 
 // fucdef        = ident "(" params? ")" "{" stmt* "}"
 // params        = ident ( "," ident )*
+//
 
-Node *funcdef(){
+// topレベルでのparser関数
+Node *top(){
+    locals = NULL;
+
+    Token *type_token = type_keyword();
+
+    if (!type_token){
+        error("型の定義がありません,");
+    }
+
+    token = token->next;
+    Token *tok = consume_ident();
+
+	if (!tok){
+		error("identがありません。");
+	}
+    
+    // 関数の場合
+    if (consume("(")){
+        return funcdef(tok);
+    // グローバル変数の場合
+    } else {
+        return globl_var(type_token, tok);
+    }
+}
+
+// int a;
+Node *globl_var(Token *type_token, Token *indent_token){
+    Node *gval = parse_globl_declaration(type_token, indent_token);
+    return gval;
+}
+
+Node *funcdef(Token *tok){
 	locals = NULL;
 	Node *node = calloc(1, sizeof(Node));
-	if (!is_type_keyword()){
-		error("型の定義がありません。");
-	}
-	token = token->next; // 型キーワードを消費
-
-	Token *tok = consume_ident();
-	if (!tok){
-		error("関数名がありません。");
-	}
 
 	node->kind = ND_FUNCDEF;
 	node->funcname = tok->str;
@@ -111,7 +138,6 @@ Node *funcdef(){
 	//    int  len;
 	//    int  offset;
 	// }
-	expect("(");
 	if (!consume(")")){
 		// 最初の引数
         Node *cur_arg = parse_declaration();
@@ -148,7 +174,7 @@ Node *stmt(){
 
 	// 変数宣言: type ident ("=" expr)? ";"
     // ポインタ変数としての定義もできるように
-	if (is_type_keyword()){
+	if (type_keyword()){
 		node = parse_declaration();
 		expect(";");
 		return node;
@@ -212,7 +238,7 @@ Node *stmt(){
 		node->kind = ND_FOR;
 		expect("(");
 		if (!consume(";")){
-			if (is_type_keyword()){
+			if (type_keyword()){
 				node->finit = parse_declaration();
 			} else {
 				node->finit = expr();
@@ -379,21 +405,32 @@ Node *primary(){
 			return node;
 		}
 
+        // local変数の確認 => global変数の確認の順番でヒットする変数を確認し、globl偏数の場合は、特別な型を作る。
 		// 変数参照の場合
-		node->kind = ND_LVAR;
+        // TODO: ローカル変数の場合と、グローバル変数の場合で、対応が変わる
+        LVar *lvar = find_lvar(ident_tok);
+        GVar *gvar = find_gvar(ident_tok);
 
-		LVar *lvar = find_lvar(ident_tok);
-		if (!lvar){
-			error("未定義の変数です。変数は型をつけて定義してください。");
-		}
-		node->offset = lvar->offset;
-        node->type   = lvar->type;
-        node->is_array = (lvar->type->kind == TY_ARRAY);
-        if (consume("[")){
-            Node *index = expr();
-            expect("]");
-            return new_node(ND_DEREF, new_node(ND_ADD, node, index), NULL);
+        if (lvar){ 
+            node->kind = ND_LVAR;
+            node->offset = lvar->offset;
+            node->type   = lvar->type;
+            node->is_array = (lvar->type->kind == TY_ARRAY);
+            // 配列のa[10]とかのアクセスの場合。
+            if (consume("[")){
+                Node *index = expr();
+                expect("]");
+                return new_node(ND_DEREF, new_node(ND_ADD, node, index), NULL);
+            }
+        } else if (gvar){
+            node->kind = ND_GVAR;
+            node->gvar_name = gvar->name;
+            node->gvar_len  = gvar->len;
+            node->type = gvar->type;
+        } else {
+            error("未定義の変数です。");
         }
+
 		return node;
 	}
 
@@ -401,6 +438,14 @@ Node *primary(){
 }
 
 // 変数を名前で検索する。見つからなかったらNULLを返す。
+GVar *find_gvar(Token *tok){
+    for (GVar *var = globls; var; var=var->next){
+        if (var->len == tok->len && !memcmp(tok->str, var->name, var->len))
+            return var;
+    }
+    return NULL;
+}
+
 LVar *find_lvar(Token *tok){
 	for (LVar *var = locals; var; var = var->next){
 		if (var->len == tok->len &&  !memcmp(tok->str, var->name, var->len))
@@ -474,7 +519,6 @@ void expect(char *op){
 	token = token->next;
 }
 
-
 // 次のトークンが数値の場合、トークンを一つ読み進めてその数値を返す
 // それ以外の場合はエラーを報告する。
 int expect_number() {
@@ -486,16 +530,65 @@ int expect_number() {
 }
 
 // 現在のトークンが型キーワードかどうか（トークンは消費しない）
-bool is_type_keyword(){
-	return token->kind == TK_INT_TYPE || token->kind == TK_CHAR_TYPE;
+Token *type_keyword(){
+    if (token->kind == TK_INT_TYPE || token->kind == TK_CHAR_TYPE ){
+        return token;
+    } else {
+        return NULL;
+    }
 }
 
 
 
 // 変数宣言をパースする: type ident ("=" expr)?
 // セミコロンは呼び出し側で処理する
+// 外部変数の管理する連結リストとローカル変数の連結リストは分ける
+Node *parse_globl_declaration(Token *type_tok, Token *ident_tok){
+
+    if (!ident_tok){
+        error("グローバル変数名がありません");
+    }
+
+    GVar *gvar = find_gvar(ident_tok);
+
+    if (gvar){
+        error("グローバル変数が二重で定義されています。");
+    }
+
+    GVar *cur_globls = globls;
+    gvar = calloc(1, sizeof(GVar));
+
+    // グローバル変数の登録
+    gvar->name = ident_tok->str;
+    gvar->next = globls;
+    gvar->len = ident_tok->len;
+    globls = gvar;
+
+
+    Node *node = calloc(1, sizeof(Node));
+    node->kind = ND_GVAR;
+    // ローカル変数はNodeに登録したoffsetでアクセスするが、外部変数は名前をシンボルにアクセスする。
+    node->gvar_name = gvar->name;
+    node->gvar_len = gvar->len;
+
+    TypeKind ident_type = type_tok->kind == TK_INT_TYPE ? TY_INT : TY_CHAR;
+    Type *type = calloc(1, sizeof(Type));
+    type->kind = ident_type;
+    if (ident_type == TY_INT){
+        type->size = INT_SIZE;
+    } else if (ident_type == TY_CHAR){
+        type->size = CHAR_SIZE;
+    }
+    gvar->type = type;
+    node->type = type;
+
+    expect(";");
+        
+    return node;
+}
+
 Node *parse_declaration(){
-    TokenKind ident_type = token->kind == TK_INT_TYPE ? TY_INT : TY_CHAR;
+    TypeKind ident_type = token->kind == TK_INT_TYPE ? TY_INT : TY_CHAR;
 	token = token->next; // 型キーワードを消費
 
     // type指定子後に*があったらwhileで回してType型の連結リストを作っておく

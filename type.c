@@ -192,6 +192,9 @@ void add_type(Node *node){
         case ND_LVAR:
             // すでにparserの段階で設定されている
             break;
+        case ND_GVAR:
+            // すでにparserの段階でnode->typesにセットしている。
+            break;
         case ND_RETURN:
             node->type = node->lhs->type;
             break;

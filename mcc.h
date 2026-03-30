@@ -95,6 +95,7 @@ typedef enum {
 	ND_ADDR,     // アドレス参照
 	ND_DEREF,    // アドレスデリファレンス
 	ND_SIZEOF,   // sizeof演算子
+	ND_GVAR,     // 外部変数
 	ND_NUM,      // 整数
 } NodeKind;
 
@@ -137,6 +138,10 @@ struct Node {
 	Node *func_body;
 	Node *next_func_stmt;
 
+	// 外部変数名
+	char *gvar_name;
+	int  gvar_len;
+
 	// 型情報
 	Type *type;
 
@@ -162,11 +167,22 @@ struct LVar {
 	int offset;   // RBPからアクセスするためのオフセット値
 };
 
+typedef struct GVar GVar;
+
+struct GVar {
+	GVar *next;
+	char *name;
+	int len;
+	Type *type;
+	char *label;
+};
+
 
 // 外部変数の宣言
 extern Token *token;
 extern Node *code[100];
 extern LVar *locals;
+extern GVar *globls;
 extern TypeSpecifier type_specifiers[2];
 extern TypeRegistry *type_registry;
 
