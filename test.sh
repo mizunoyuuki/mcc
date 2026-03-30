@@ -1830,3 +1830,126 @@ int main(){
     return g;
 }
 '
+
+  echo "=== ポインタ型グローバル変数 ==="
+
+  # ポインタ型グローバル変数の宣言（クラッシュしないこと）
+  assert 0 '
+  int *gp;
+  int main(){
+      return 0;
+  }
+  '
+
+  # ポインタ型グローバル変数にローカル変数のアドレスを代入して読み取り
+  assert 42 '
+  int *gp;
+  int main(){
+      int a = 42;
+      gp = &a;
+      return *gp;
+  }
+  '
+
+  # ポインタ型グローバル変数経由で書き込み
+  assert 99 '
+  int *gp;
+  int main(){
+      int a = 0;
+      gp = &a;
+      *gp = 99;
+      return a;
+  }
+  '
+
+  # ポインタ型グローバル変数を関数間で共有
+  assert 77 '
+  int *gp;
+  int set_gp(int *p){
+      gp = p;
+      return 0;
+  }
+  int main(){
+      int a = 77;
+      set_gp(&a);
+      return *gp;
+  }
+  '
+
+  # ポインタ型グローバル変数 + 別のグローバル変数のアドレス
+  assert 10 '
+  int val;
+  int *gp;
+  int main(){
+      val = 10;
+      gp = &val;
+      return *gp;
+  }
+  '
+
+  # ポインタ型グローバル変数経由でグローバル変数に書き込み
+  assert 55 '
+  int val;
+  int *gp;
+  int main(){
+      val = 0;
+      gp = &val;
+      *gp = 55;
+      return val;
+  }
+  '
+
+  # 二重ポインタ型グローバル変数
+  assert 3 '
+  int **gpp;
+  int main(){
+      int a = 3;
+      int *p = &a;
+      gpp = &p;
+      return **gpp;
+  }
+  '
+
+  # char型ポインタのグローバル変数
+  assert 25 '
+  char *gcp;
+  int main(){
+      char a = 25;
+      gcp = &a;
+      return *gcp;
+  }
+  '
+
+  # ポインタ型グローバル変数のsizeof
+  assert 8 '
+  int *gp;
+  int main(){
+      return sizeof(gp);
+  }
+  '
+
+  # ポインタ型グローバル変数を使ったポインタ算術
+  assert 20 '
+  int *gp;
+  int main(){
+      int a[3];
+      *a = 10;
+      *(a + 1) = 20;
+      *(a + 2) = 30;
+      gp = a + 1;
+      return *gp;
+  }
+  '
+
+  # 複数のポインタ型グローバル変数
+  assert 30 '
+  int *gpa;
+  int *gpb;
+  int main(){
+      int a = 10;
+      int b = 20;
+      gpa = &a;
+      gpb = &b;
+      return *gpa + *gpb;
+  }
+  '
