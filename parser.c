@@ -564,7 +564,6 @@ Node *parse_globl_declaration(Token *type_tok, Token *ident_tok){
     gvar->len = ident_tok->len;
     globls = gvar;
 
-
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_GVAR;
     // ローカル変数はNodeに登録したoffsetでアクセスするが、外部変数は名前をシンボルにアクセスする。
