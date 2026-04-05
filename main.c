@@ -24,6 +24,8 @@ Token *token;
 Node *code[100];
 LVar *locals;
 GVar *globls;
+FuncEntry *func_entry;
+
 TypeSpecifier type_specifiers[] = {
     {"int",  TK_INT_TYPE,  3},
     {"char", TK_CHAR_TYPE, 4},
@@ -31,6 +33,8 @@ TypeSpecifier type_specifiers[] = {
 
 int main(int argc, char *argv[]){
     globls = NULL;
+    func_entry = NULL;
+
     if (argc != 2){
             error("引数の個数が正しくありません。");
             return 1;

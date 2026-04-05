@@ -45,7 +45,7 @@ Node *new_node_num(int val){
 // 関数の宣言
 Node *top();
 Node *globl_var(Token*, Token*, Type*);
-Node *funcdef();
+Node *funcdef(Token*, Type*);
 Node *stmt();
 Node *expr();
 Node *assign();
@@ -64,6 +64,7 @@ int expect_number();
 bool at_eof();
 GVar *find_gvar(Token *);
 LVar *find_lvar(Token *);
+FuncEntry *find_func(Token *);
 
 TypeRegistry *find_type_registry(Token*);
 
@@ -145,7 +146,7 @@ Node *top(){
     // 関数の場合
     if (consume("(")){
         // トークン、Type
-        return funcdef(token_ident);
+        return funcdef(token_ident, head.to_ptr);
     // グローバル変数の場合
     } else {
         // トークン, Type
@@ -159,13 +160,14 @@ Node *globl_var(Token *type_token, Token *indent_token, Type *type){
     return gval;
 }
 
-Node *funcdef(Token *tok){
+Node *funcdef(Token *tok, Type *type){
 	locals = NULL;
 	Node *node = calloc(1, sizeof(Node));
 
 	node->kind = ND_FUNCDEF;
 	node->funcname = tok->str;
 	node->funclen = tok->len;
+    node->type = type;
 
 
 	// 関数の引数部分
@@ -206,6 +208,14 @@ Node *funcdef(Token *tok){
 	}
 
 	node->func_lvar = locals;
+
+    FuncEntry *fe = func_entry;
+    FuncEntry *cur_f = calloc(1, sizeof(FuncEntry));
+    cur_f->name = tok->str;
+    cur_f->type = type;
+    cur_f->next = fe;
+    func_entry = cur_f;
+
 	return node;
 }
 
@@ -429,6 +439,12 @@ Node *primary(){
 			node->kind = ND_FUNCALL;
 			node->funcname = ident_tok->str;
 			node->funclen = ident_tok->len;
+            // 関数名をidentトークンから探す
+            FuncEntry *fnc = find_func(ident_tok);
+            if(fnc){ 
+                node->type = fnc->type;
+            }
+
 			if (consume(")")) {
 				return node;
 			}
@@ -721,6 +737,15 @@ TypeRegistry *find_type_registry(Token *tk){
         if (memcmp(tk->str, cur->name, tk->len) == 0)
             return cur;
     }
+    return NULL;
+}
+
+FuncEntry *find_func(Token *tk){
+    for(FuncEntry *f = func_entry; f; f = f->next){
+        if (memcmp(tk->str, f->name, tk->len) == 0)
+            return f;
+    }
+
     return NULL;
 }
 

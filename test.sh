@@ -1953,3 +1953,112 @@ int main(){
       return *gpa + *gpb;
   }
   '
+
+  echo "=== ポインタ型返り値の関数 ==="
+
+  # int* を返す関数（ローカル変数のアドレスを返す）
+  assert 42 '
+  int *get_ptr(int *p){ return p; }
+  int main(){
+      int a = 42;
+      return *get_ptr(&a);
+  }
+  '
+
+  # int* を返す関数で書き込み
+  assert 99 '
+  int *get_ptr(int *p){ return p; }
+  int main(){
+      int a = 0;
+      *get_ptr(&a) = 99;
+      return a;
+  }
+  '
+
+  # char* を返す関数
+  assert 7 '
+  char *get_ptr(char *p){ return p; }
+  int main(){
+      char a = 7;
+      return *get_ptr(&a);
+  }
+  '
+
+  # ポインタ引数をそのまま返す関数
+  assert 10 '
+  int *identity(int *p){ return p; }
+  int main(){
+      int a = 10;
+      int *p = identity(&a);
+      return *p;
+  }
+  '
+
+  # ポインタ算術して返す関数
+  assert 20 '
+  int *second(int *p){ return p + 1; }
+  int main(){
+      int a[2];
+      *a = 10;
+      *(a + 1) = 20;
+      return *second(a);
+  }
+  '
+
+  # int** を返す関数
+  assert 5 '
+  int **get_pp(int **pp){ return pp; }
+  int main(){
+      int a = 5;
+      int *p = &a;
+      int **pp = get_pp(&p);
+      return **pp;
+  }
+  '
+
+  # ポインタ返り値を変数に格納して使う
+  assert 30 '
+  int *get_ptr(int *p){ return p; }
+  int main(){
+      int a = 10;
+      int b = 20;
+      int *pa = get_ptr(&a);
+      int *pb = get_ptr(&b);
+      return *pa + *pb;
+  }
+  '
+
+  # グローバル変数のアドレスをポインタ返り値で返す
+  assert 77 '
+  int g;
+  int *get_gptr(){ return &g; }
+  int main(){
+      g = 77;
+      return *get_gptr();
+  }
+  '
+
+  # ポインタ返り値の関数でグローバル変数に書き込み
+  assert 55 '
+  int g;
+  int *get_gptr(){ return &g; }
+  int main(){
+      *get_gptr() = 55;
+      return g;
+  }
+  '
+
+  # ポインタ返り値 + ループ
+  assert 15 '
+  int *get_ptr(int *p){ return p; }
+  int main(){
+      int a[3];
+      *a = 1;
+      *(a + 1) = 2;
+      *(a + 2) = 3;
+      int sum = 0;
+      for (int i = 0; i < 3; i = i + 1)
+          sum = sum + *get_ptr(a + i);
+      return sum + 9;
+  }
+  '

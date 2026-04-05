@@ -71,6 +71,14 @@ struct TypeRegistry{
 	TypeRegistry *next;
 };
 
+typedef struct FuncEntry FuncEntry;
+
+struct FuncEntry {
+	char *name;
+	Type * type;
+	FuncEntry *next;
+};
+
 // Node型のNodeKindの列挙型
 typedef enum {
 	ND_ADD,      // +
@@ -185,6 +193,7 @@ extern LVar *locals;
 extern GVar *globls;
 extern TypeSpecifier type_specifiers[2];
 extern TypeRegistry *type_registry;
+extern FuncEntry *func_entry;
 
 // type.cで、parse.cで定義した関数を使いたくなる。他にもありそうなので、optimizeでも使うと思う.
 extern Node *new_node(NodeKind kind, Node *lhs, Node *rhs);

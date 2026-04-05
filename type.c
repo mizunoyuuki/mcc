@@ -16,7 +16,14 @@ void array_decay(Node *node){
 // めっちゃマンパワーゾーンだった。
 void add_type(Node *node){
     if (node == NULL) return;
-    if (node->type != NULL) return;
+
+    // FUNCALL の引数は型が設定済みでも必ず処理する（ポインタ演算スケーリングに必要）
+    if (node->kind == ND_FUNCALL) {
+        for (Node *n = node->farg_body; n; n = n->next_farg)
+            add_type(n);
+    }
+
+    if (node->type != NULL && node->kind != ND_FUNCDEF) return;
 
     switch (node->kind){
           case ND_IF:
