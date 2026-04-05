@@ -44,8 +44,8 @@ Node *new_node_num(int val){
 
 // 関数の宣言
 Node *top();
-Node *globl_var(Token*, Token*);
-Node *funcdef();
+Node *globl_var(Token*, Token*, Type*);
+Node *funcdef(Token*, Type*);
 Node *stmt();
 Node *expr();
 Node *assign();
@@ -55,7 +55,7 @@ Node *add();
 Node *mul();
 Node *primary();
 Node *unary();
-Node *parse_globl_declaration(Token*, Token*);
+Node *parse_globl_declaration(Token*, Token*, Type*);
 Node *parse_declaration(void);
 Token *type_keyword();
 bool consume(char*);
@@ -64,6 +64,9 @@ int expect_number();
 bool at_eof();
 GVar *find_gvar(Token *);
 LVar *find_lvar(Token *);
+FuncEntry *find_func(Token *);
+
+TypeRegistry *find_type_registry(Token*);
 
 Token *consume_ident(void);
 int consume_type_size(void);
@@ -98,34 +101,73 @@ Node *top(){
     }
 
     token = token->next;
-    Token *tok = consume_ident();
 
-	if (!tok){
-		error("identがありません。");
+    // *の数だけTypeの連結リストを作る
+    Type head;
+    head.to_ptr = NULL;
+    Type *cur = &head;
+    while (consume("*")){
+        Type *t = calloc(1, sizeof(Type));
+        t->kind = TY_PTR;
+        t->size = PTR_SIZE;
+        cur->to_ptr = t;
+        cur = cur->to_ptr;
+    }
+
+    // 新しく作った型でも認識して続ける。
+    TypeRegistry *ty_regi = find_type_registry(type_token);
+
+	if (!ty_regi){
+		error("型がありません。");
 	}
+
+    // identityトークンをを取得する
+    Token *token_ident = consume_ident();
+
+    // 配列型だった場合
+    Type *last_t = calloc(1, sizeof(Type));
+    last_t->kind = ty_regi->type->kind;
+    last_t->size = ty_regi->type->size;
+    cur->to_ptr = last_t;
+
+    if (consume("[")){
+        Type *arr = calloc(1, sizeof(Type));
+        int index = expect_number();
+
+        arr->array_size = index;
+        arr->size = index * ty_regi->type->size;
+        arr->kind = TY_ARRAY;
+        expect("]");
+
+        arr->to_ptr = cur;
+    }
+
     
     // 関数の場合
     if (consume("(")){
-        return funcdef(tok);
+        // トークン、Type
+        return funcdef(token_ident, head.to_ptr);
     // グローバル変数の場合
     } else {
-        return globl_var(type_token, tok);
+        // トークン, Type
+        return globl_var(type_token, token_ident, head.to_ptr);
     }
 }
 
 // int a;
-Node *globl_var(Token *type_token, Token *indent_token){
-    Node *gval = parse_globl_declaration(type_token, indent_token);
+Node *globl_var(Token *type_token, Token *indent_token, Type *type){
+    Node *gval = parse_globl_declaration(type_token, indent_token, type);
     return gval;
 }
 
-Node *funcdef(Token *tok){
+Node *funcdef(Token *tok, Type *type){
 	locals = NULL;
 	Node *node = calloc(1, sizeof(Node));
 
 	node->kind = ND_FUNCDEF;
 	node->funcname = tok->str;
 	node->funclen = tok->len;
+    node->type = type;
 
 
 	// 関数の引数部分
@@ -166,6 +208,14 @@ Node *funcdef(Token *tok){
 	}
 
 	node->func_lvar = locals;
+
+    FuncEntry *fe = func_entry;
+    FuncEntry *cur_f = calloc(1, sizeof(FuncEntry));
+    cur_f->name = tok->str;
+    cur_f->type = type;
+    cur_f->next = fe;
+    func_entry = cur_f;
+
 	return node;
 }
 
@@ -389,6 +439,12 @@ Node *primary(){
 			node->kind = ND_FUNCALL;
 			node->funcname = ident_tok->str;
 			node->funclen = ident_tok->len;
+            // 関数名をidentトークンから探す
+            FuncEntry *fnc = find_func(ident_tok);
+            if(fnc){ 
+                node->type = fnc->type;
+            }
+
 			if (consume(")")) {
 				return node;
 			}
@@ -543,12 +599,7 @@ Token *type_keyword(){
 // 変数宣言をパースする: type ident ("=" expr)?
 // セミコロンは呼び出し側で処理する
 // 外部変数の管理する連結リストとローカル変数の連結リストは分ける
-Node *parse_globl_declaration(Token *type_tok, Token *ident_tok){
-
-    if (!ident_tok){
-        error("グローバル変数名がありません");
-    }
-
+Node *parse_globl_declaration(Token *type_tok, Token *ident_tok, Type *type){
     GVar *gvar = find_gvar(ident_tok);
 
     if (gvar){
@@ -564,21 +615,12 @@ Node *parse_globl_declaration(Token *type_tok, Token *ident_tok){
     gvar->len = ident_tok->len;
     globls = gvar;
 
-
     Node *node = calloc(1, sizeof(Node));
     node->kind = ND_GVAR;
     // ローカル変数はNodeに登録したoffsetでアクセスするが、外部変数は名前をシンボルにアクセスする。
     node->gvar_name = gvar->name;
     node->gvar_len = gvar->len;
 
-    TypeKind ident_type = type_tok->kind == TK_INT_TYPE ? TY_INT : TY_CHAR;
-    Type *type = calloc(1, sizeof(Type));
-    type->kind = ident_type;
-    if (ident_type == TY_INT){
-        type->size = INT_SIZE;
-    } else if (ident_type == TY_CHAR){
-        type->size = CHAR_SIZE;
-    }
     gvar->type = type;
     node->type = type;
 
@@ -695,6 +737,15 @@ TypeRegistry *find_type_registry(Token *tk){
         if (memcmp(tk->str, cur->name, tk->len) == 0)
             return cur;
     }
+    return NULL;
+}
+
+FuncEntry *find_func(Token *tk){
+    for(FuncEntry *f = func_entry; f; f = f->next){
+        if (memcmp(tk->str, f->name, tk->len) == 0)
+            return f;
+    }
+
     return NULL;
 }
 
