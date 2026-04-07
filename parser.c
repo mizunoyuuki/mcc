@@ -139,7 +139,8 @@ Node *top(){
         arr->kind = TY_ARRAY;
         expect("]");
 
-        arr->to_ptr = cur;
+        arr->to_ptr = last_t;
+        head.to_ptr = arr;
     }
 
     
@@ -483,6 +484,12 @@ Node *primary(){
             node->gvar_name = gvar->name;
             node->gvar_len  = gvar->len;
             node->type = gvar->type;
+            node->is_array = (gvar->type->kind == TY_ARRAY);
+            if (consume("[")){
+                Node *index = expr();
+                expect("]");
+                return new_node(ND_DEREF, new_node(ND_ADD, node, index), NULL);
+            }
         } else {
             error("未定義の変数です。");
         }
@@ -623,6 +630,7 @@ Node *parse_globl_declaration(Token *type_tok, Token *ident_tok, Type *type){
 
     gvar->type = type;
     node->type = type;
+    node->is_array = (gvar->type->kind == TY_ARRAY);
 
     expect(";");
         

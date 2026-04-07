@@ -243,6 +243,10 @@ void gen (Node *node){
             // .dataセクションに切り替え
             gen_lval(node);
             printf("    pop rax\n");
+            if (node->is_array){
+                printf("    push rax\n");
+                return;
+            }
             if (node->type->size == 8) {
                 printf("    mov rax, [rax]\n");
             } else if (node->type->size == 4) {

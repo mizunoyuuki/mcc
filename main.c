@@ -60,7 +60,12 @@ int main(int argc, char *argv[]){
 	//先頭の式から
     //
     for (int i = 0; code[i]; i++){
-        if (code[i]->kind == ND_GVAR){
+        if (code[i]->kind == ND_GVAR && !code[i]->is_array){
+            printf(".data\n");
+            printf(".globl %.*s\n", code[i]->gvar_len, code[i]->gvar_name);
+            printf("%.*s:\n", code[i]->gvar_len, code[i]->gvar_name);
+            printf("    .zero %d\n", code[i]->type->size);
+        } else if (code[i]->kind == ND_GVAR && code[i]->is_array){
             printf(".data\n");
             printf(".globl %.*s\n", code[i]->gvar_len, code[i]->gvar_name);
             printf("%.*s:\n", code[i]->gvar_len, code[i]->gvar_name);

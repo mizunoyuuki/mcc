@@ -2062,3 +2062,157 @@ int main(){
       return sum + 9;
   }
   '
+
+# 配列型のグローバル変数
+assert 1 '
+int a[10];
+int main(){
+	return 1;
+}
+'
+
+assert 7 '
+int a[10];
+int main(){
+	*a = 1;
+	*(a + 1) = 2;
+	*(a + 2) = 3;
+	*(a + 3) = 4;
+	*(a + 4) = 5;
+	*(a + 5) = 6;
+	*(a + 6) = 7;
+	return *(a + 6);
+}
+'
+
+# ゼロ初期化されていること
+assert 0 '
+int a[5];
+int main(){
+	return *a;
+}
+'
+
+# 先頭要素の書き込み・読み取り
+assert 42 '
+int a[5];
+int main(){
+	*a = 42;
+	return *a;
+}
+'
+
+# 複数要素の書き込み・読み取り
+assert 6 '
+int a[3];
+int main(){
+	*a = 1;
+	*(a + 1) = 2;
+	*(a + 2) = 3;
+	return *a + *(a + 1) + *(a + 2);
+}
+'
+
+# グローバル配列をポインタ変数に代入して使う
+assert 10 '
+int a[3];
+int main(){
+	*a = 10;
+	int *p = a;
+	return *p;
+}
+'
+
+# グローバル配列の要素にポインタ経由で書き込み
+assert 99 '
+int a[3];
+int main(){
+	*a = 0;
+	int *p = a;
+	*p = 99;
+	return *a;
+}
+'
+
+# 複数のグローバル配列が独立していること
+assert 1 '
+int a[3];
+int b[3];
+int main(){
+	*a = 1;
+	*(a + 1) = 2;
+	*b = 10;
+	*(b + 1) = 20;
+	return *a;
+}
+'
+
+assert 20 '
+int a[3];
+int b[3];
+int main(){
+	*a = 1;
+	*(a + 1) = 2;
+	*b = 10;
+	*(b + 1) = 20;
+	return *(b + 1);
+}
+'
+
+# グローバル配列をforループで使う
+assert 10 '
+int a[5];
+int main(){
+	int i;
+	for (i = 0; i < 5; i = i + 1)
+		*(a + i) = 2;
+	int sum = 0;
+	for (i = 0; i < 5; i = i + 1)
+		sum = sum + *(a + i);
+	return sum;
+}
+'
+
+# 関数をまたいでグローバル配列を使う
+assert 7 '
+int a[3];
+int set_vals(){
+	*a = 3;
+	*(a + 1) = 4;
+	return 0;
+}
+int main(){
+	set_vals();
+	return *a + *(a + 1);
+}
+'
+
+# グローバル配列を関数引数として渡す（ポインタとして）
+assert 6 '
+int sum(int *p){
+	return *p + *(p + 1) + *(p + 2);
+}
+int a[3];
+int main(){
+	*a = 1;
+	*(a + 1) = 2;
+	*(a + 2) = 3;
+	return sum(a);
+}
+'
+
+# char型グローバル配列
+assert 0 '
+char a[10];
+int main(){
+	return *a;
+}
+'
+
+assert 5 '
+char a[10];
+int main(){
+	*a = 5;
+	return *a;
+}
+'
