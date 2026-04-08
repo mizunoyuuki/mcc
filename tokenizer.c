@@ -1,5 +1,4 @@
 #include"mcc.h"
-
 // 新しいトークンを作成してcurに繋げる
 Token *new_token(TokenKind kind, Token *cur, char *str, int len){
         Token *tok = calloc(1, sizeof(Token));
@@ -40,6 +39,18 @@ bool is_for(char *p){
 
 bool is_sizeof(char *p){
     return !memcmp(p, "sizeof", 6) && !is_alphabet(*(p+6));
+}
+
+int is_char_const(char *p){
+    if (*p == '\''){
+        int start = (*(p+1) == '\\') ? 3 : 2;  // ← バックスラッシュなら3から
+        for(int i = start;; i++){
+            if (*(p + i) == '\''){
+                return i-1;
+            }
+        }
+    }
+    return 0;
 }
 
 // C言語デフォルトの型をトークナイズするための関数
@@ -102,6 +113,27 @@ Token *tokenize(char *p){
 			p+=2;
 			continue;
 		}
+
+        int a = is_char_const(p);
+        if(a){
+            cur = new_token(TK_CHAR_CONST, cur, p, a);
+
+            if (a == 1){
+                cur->val = *(p + 1); // 通常文字
+            } else {
+                switch(*(p + 2)) {
+                    case 'n': cur->val = '\n'; break;
+                    case 't': cur->val = '\t'; break;
+                    case 'r':  cur->val = '\r'; break;  // 13
+                    case '0':  cur->val = '\0'; break;  // 0
+                    case '\\': cur->val = '\\'; break;  // 92
+                    case '\'': cur->val = '\''; break;  // 39
+                    default:   error("不正なエスケープシーケンス");
+                }
+            }
+            p = p + a + 2;
+            continue;
+        }
 
         if (is_sizeof(p)){
             cur = new_token(TK_SIZEOF, cur, p, 6);

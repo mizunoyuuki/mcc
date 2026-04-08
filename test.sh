@@ -2225,3 +2225,41 @@ int main(){
 	return s[2];
 }
 '
+
+echo "=== 文字定数 ==="
+
+# 基本的なASCII文字
+assert 97  "int main(){ return 'a'; }"
+assert 65  "int main(){ return 'A'; }"
+assert 122 "int main(){ return 'z'; }"
+assert 48  "int main(){ return '0'; }"
+
+# エスケープシーケンス
+assert 10  "int main(){ return '\n'; }"
+assert 9   "int main(){ return '\t'; }"
+assert 13  "int main(){ return '\r'; }"
+assert 0   "int main(){ return '\0'; }"
+assert 92  "int main(){ return '\\\\'; }"
+assert 39  "int main(){ return '\''; }"
+
+# char変数への代入
+assert 65  "int main(){ char c = 'A'; return c; }"
+assert 97  "int main(){ int x = 'a'; return x; }"
+
+# 算術演算
+assert 1   "int main(){ return 'b' - 'a'; }"
+assert 25  "int main(){ return 'z' - 'a'; }"
+assert 194 "int main(){ return 'a' + 'a'; }"
+
+# 比較演算
+assert 1   "int main(){ return 'a' == 97; }"
+assert 1   "int main(){ return 'A' < 'a'; }"
+assert 0   "int main(){ return 'z' < 'a'; }"
+
+# if条件での使用
+assert 1   "int main(){ if ('a' == 97) return 1; return 0; }"
+assert 1   "int main(){ char c = 'x'; if (c == 'x') return 1; return 0; }"
+assert 0   "int main(){ char c = 'y'; if (c == 'x') return 1; return 0; }"
+
+# 関数引数として渡す
+assert 97  "int id(int x){ return x; } int main(){ return id('a'); }"

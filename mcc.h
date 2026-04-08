@@ -21,6 +21,7 @@ typedef enum {
 	TK_NUM,       // 整数トークン
         TK_INT_TYPE,  // int型
         TK_CHAR_TYPE, // char型
+        TK_CHAR_CONST,// 文字定数
 	TK_SIZEOF,    // sizeof演算子
 	TK_EOF        // 入力の終わりを表すトークン
 } TokenKind;

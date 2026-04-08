@@ -430,6 +430,12 @@ Node *primary(){
 		return node;
 	}
 
+    if (token->kind == TK_CHAR_CONST){
+        Node *node = new_node_num(token->val);
+        token = token->next;
+        return node;
+    }
+
 
 	Token *ident_tok = consume_ident();
 
