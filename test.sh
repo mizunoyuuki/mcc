@@ -2263,3 +2263,9 @@ assert 0   "int main(){ char c = 'y'; if (c == 'x') return 1; return 0; }"
 
 # 関数引数として渡す
 assert 97  "int id(int x){ return x; } int main(){ return id('a'); }"
+
+assert 4 "
+int main(){
+	return sizeof('A');
+}
+"
