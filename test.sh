@@ -2216,3 +2216,12 @@ int main(){
 	return *a;
 }
 '
+
+assert 5 '
+char s[3];
+int main(){
+	s[1] = 1;
+	s[2] = 5;
+	return s[2];
+}
+'
