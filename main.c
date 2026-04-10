@@ -25,6 +25,7 @@ Node *code[100];
 LVar *locals;
 GVar *globls;
 FuncEntry *func_entry;
+StrLiteral *str_literals;
 
 TypeSpecifier type_specifiers[] = {
     {"int",  TK_INT_TYPE,  3},
@@ -34,6 +35,7 @@ TypeSpecifier type_specifiers[] = {
 int main(int argc, char *argv[]){
     globls = NULL;
     func_entry = NULL;
+    str_literals = NULL;
 
     if (argc != 2){
             error("引数の個数が正しくありません。");
@@ -72,6 +74,15 @@ int main(int argc, char *argv[]){
             printf("    .zero %d\n", code[i]->type->size);
         }
     }
+
+    StrLiteral *cur = str_literals;
+    while(cur){
+        printf(".rodata\n");
+        printf(".LSTR%d\n", cur->simbol_index);
+        printf("    .string \"%.*s\"\n", cur->len, cur->str);
+        cur = cur->next;
+    }
+
     printf(".text\n");
     for (int i = 0; code[i]; i++){
         if (code[i]->kind != ND_GVAR)

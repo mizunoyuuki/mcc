@@ -22,6 +22,7 @@ typedef enum {
         TK_INT_TYPE,  // int型
         TK_CHAR_TYPE, // char型
         TK_CHAR_CONST,// 文字定数
+	TK_STRING,    // 文字列
 	TK_SIZEOF,    // sizeof演算子
 	TK_EOF        // 入力の終わりを表すトークン
 } TokenKind;
@@ -104,6 +105,7 @@ typedef enum {
 	ND_ADDR,     // アドレス参照
 	ND_DEREF,    // アドレスデリファレンス
 	ND_SIZEOF,   // sizeof演算子
+	ND_STRING,   // 文字列リテラル
 	ND_GVAR,     // 外部変数
 	ND_NUM,      // 整数
 } NodeKind;
@@ -111,6 +113,14 @@ typedef enum {
 // Node型
 typedef struct Node Node;
 typedef struct LVar LVar;
+typedef struct StrLiteral StrLiteral;
+
+struct StrLiteral{
+	int simbol_index;
+	char *str;
+	int len;
+	StrLiteral *next;
+};
 
 struct Node {
 	NodeKind kind; // ノードの型
@@ -161,7 +171,12 @@ struct Node {
 
 	// この変数が配列型かどうか
 	bool is_array;
-	
+
+
+	// 文字列リレラル
+	StrLiteral *str_lite;
+	char *str;
+	int str_size;
 
 	int val;       // kindがND_NUMの場合のみ扱う
         int offset;    // kindがND_LVARの場合のみ使う
@@ -186,7 +201,6 @@ struct GVar {
 	char *label;
 };
 
-
 // 外部変数の宣言
 extern Token *token;
 extern Node *code[100];
@@ -195,6 +209,7 @@ extern GVar *globls;
 extern TypeSpecifier type_specifiers[2];
 extern TypeRegistry *type_registry;
 extern FuncEntry *func_entry;
+extern StrLiteral *str_literals;
 
 // type.cで、parse.cで定義した関数を使いたくなる。他にもありそうなので、optimizeでも使うと思う.
 extern Node *new_node(NodeKind kind, Node *lhs, Node *rhs);

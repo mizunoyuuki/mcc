@@ -436,6 +436,28 @@ Node *primary(){
         return node;
     }
 
+    if (token->kind == TK_STRING){
+        static int str_index = 0;
+
+        // str_literals連結リストの作成
+        StrLiteral *str = calloc(1, sizeof(StrLiteral));
+        str->simbol_index = str_index;
+        str->len = token->len;
+        str->str = token->str;
+
+        str->next = str_literals;
+        str_literals = str;
+
+        Node *node = calloc(1, sizeof(Node));
+        node->kind = ND_STRING;
+        node->str_lite = str;
+        token = token->next;
+
+        // インクリメント
+        str_index++;
+        return node;
+    }
+
 
 	Token *ident_tok = consume_ident();
 
@@ -770,7 +792,7 @@ int consume_type_size(){
     if (tk != TK_INT_TYPE && tk != TK_CHAR_TYPE)
         return -1;
 
-    // tokenの名前から、TypeRegisterを探しに行こうか。🤔
+    // tokenの名前から、TypeRegisterを探しに行こうか。
     TypeRegistry *tr = find_type_registry(token);
     token = token->next;
 

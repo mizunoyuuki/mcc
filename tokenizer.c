@@ -128,10 +128,22 @@ Token *tokenize(char *p){
                     case '0':  cur->val = '\0'; break;  // 0
                     case '\\': cur->val = '\\'; break;  // 92
                     case '\'': cur->val = '\''; break;  // 39
+                    case '\"': cur->val = '\"'; break;
                     default:   error("不正なエスケープシーケンス");
                 }
             }
             p = p + a + 2;
+            continue;
+        }
+
+        if (*p == '\"'){
+            p++;
+            int str_len = 0;
+            while(*(p + str_len) != '\"'){
+                str_len++;
+            }
+            cur = new_token(TK_STRING, cur, p, str_len);
+            p = p + str_len + 1;
             continue;
         }
 

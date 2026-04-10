@@ -2269,3 +2269,24 @@ int main(){
 	return sizeof('A');
 }
 "
+
+assert 3 "
+int main(){
+	char x[3];
+	x[0] = -1;
+	x[1] = 2;
+	int y;
+	y = 4;
+	return x[0] + y;
+}
+"
+
+assert 5 '
+int main(){
+	char *s;
+	s = "Hello, World!";
+	int a;
+	a = 5;
+	return 5;
+}
+'

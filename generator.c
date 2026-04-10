@@ -278,6 +278,11 @@ void gen (Node *node){
             }
             printf("    push rax\n");
             return;
+
+        case ND_STRING:
+            printf("    lea rax, [rip + .LSTR%d]\n", node->str_lite->simbol_index);
+            printf("    push rax\n");
+            return;
 	}
 
 	gen(node->lhs);
