@@ -2290,3 +2290,156 @@ int main(){
 	return 5;
 }
 '
+
+echo "=== 文字列リテラル ==="
+
+# 基本: 代入してクラッシュしないこと
+assert 0 '
+int main(){
+    char *s = "hello";
+    return 0;
+}
+'
+
+# *s で先頭文字を取得 ('h' = 104)
+assert 104 '
+int main(){
+    char *s = "hello";
+    return *s;
+}
+'
+
+# s[0] でインデックスアクセス
+assert 104 '
+int main(){
+    char *s = "hello";
+    return s[0];
+}
+'
+
+# s[1] で2番目の文字 ('e' = 101)
+assert 101 '
+int main(){
+    char *s = "hello";
+    return s[1];
+}
+'
+
+# s[2] で3番目の文字 ('l' = 108)
+assert 108 '
+int main(){
+    char *s = "hello";
+    return s[2];
+}
+'
+
+# *(s+i) でポインタ算術
+assert 111 '
+int main(){
+    char *s = "hello";
+    return *(s + 4);
+}
+'
+
+# 文字列を関数引数に渡す
+assert 104 '
+int f(char *s){ return *s; }
+int main(){
+    return f("hello");
+}
+'
+
+# 関数内でポインタ算術
+assert 101 '
+int f(char *s){ return *(s + 1); }
+int main(){
+    return f("hello");
+}
+'
+
+# 複数の文字列リテラル
+assert 120 '
+int main(){
+    char *s = "abc";
+    char *t = "xyz";
+    return *t;
+}
+'
+
+# 複数の文字列リテラル、それぞれ別の文字を返す
+assert 97 '
+int main(){
+    char *s = "abc";
+    char *t = "xyz";
+    return *s;
+}
+'
+
+# 文字列の文字と数値の比較
+assert 1 '
+int main(){
+    char *s = "hello";
+    if (*s == 104) return 1;
+    return 0;
+}
+'
+
+# 文字列の文字と文字定数の比較
+assert 1 '
+int main(){
+    char *s = "hello";
+    if (*s == '\''h'\'') return 1;
+    return 0;
+}
+'
+
+# 宣言と代入を分けた場合
+assert 104 '
+int main(){
+    char *s;
+    s = "hello";
+    return *s;
+}
+'
+
+# グローバルchar*に文字列を代入
+assert 119 '
+char *g;
+int main(){
+    g = "world";
+    return *g;
+}
+'
+
+# グローバルchar*の文字列をインデックスアクセス
+assert 111 '
+char *g;
+int main(){
+    g = "world";
+    return g[1];
+}
+'
+
+# ループで文字列を走査 ('h'=104, 'e'=101, ... 5文字目の'\0'=0)
+assert 0 '
+int main(){
+    char *s = "hello";
+    char *p = s;
+    while (*p != 0)
+        p = p + 1;
+    return *p;
+}
+'
+
+# 文字列長を求める（'\0'まで数える）
+assert 5 '
+int strlen_impl(char *s){
+    int n = 0;
+    while (*(s + n) != 0)
+        n = n + 1;
+    return n;
+}
+int main(){
+    return strlen_impl("hello");
+}
+'
