@@ -77,8 +77,8 @@ int main(int argc, char *argv[]){
 
     StrLiteral *cur = str_literals;
     while(cur){
-        printf(".rodata\n");
-        printf(".LSTR%d\n", cur->simbol_index);
+        printf(".section .rodata\n");
+        printf(".LSTR%d:\n", cur->simbol_index);
         printf("    .string \"%.*s\"\n", cur->len, cur->str);
         cur = cur->next;
     }
