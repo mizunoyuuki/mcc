@@ -62,6 +62,22 @@ TypeSpecifier *is_type_specifier(char *p){
     return NULL;
 }
 
+bool is_one_line_comment(char *p){
+    return (*p == '/' && *(p + 1) == '/');
+}
+
+bool is_one_line_comment_end(char *p){
+    return (*p == '\n' ||  *p == '\0');
+}
+
+bool is_block_comment(char *p){
+    return (*p == '/' && *(p + 1) == '*');
+}
+
+bool is_block_comment_end(char *p){
+    return (*p == '*' && *(p + 1) == '/');
+}
+
 // 入力文字列pをトークナイズしてそれを返す。
 // 現在の文法
 //
@@ -103,6 +119,22 @@ Token *tokenize(char *p){
             p += type->len;
             continue;
         }
+
+
+        if (is_one_line_comment(p)){
+            while(!is_one_line_comment_end(p))
+                p++;
+            continue;
+        }
+
+        if (is_block_comment(p)){
+            while(!is_block_comment_end(p))
+                p++;
+            p += 2;
+            continue;
+        }
+
+
 		if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == ';' || *p == ',' || *p == '&' ||  *p == '[' || *p == ']' ){
 			cur = new_token(TK_RESERVED, cur, p++, 1);
 			continue;
@@ -213,6 +245,8 @@ Token *tokenize(char *p){
 			cur->len = p-q;
 			continue;
 		}
+
+        
 
 		error("トークナイズできません。");
 	}
