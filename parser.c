@@ -1,4 +1,4 @@
-#include"mcc.h"
+#include"mcc.h" 
 
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs){
 	Node *node = calloc(1, sizeof(Node));
@@ -64,6 +64,7 @@ int expect_number();
 bool at_eof();
 GVar *find_gvar(Token *);
 LVar *find_lvar(Token *);
+LVar *find_double_define(Token *tok);
 FuncEntry *find_func(Token *);
 
 TypeRegistry *find_type_registry(Token*);
@@ -76,6 +77,9 @@ bool consume_else(char *op);
 bool consume_while(char *op);
 bool consume_for(char *op);
 bool consume_sizeof(char *op);
+
+void enter_scope(void);
+void leave_scope(void);
 
 void program(){
 	int i = 0;
@@ -93,13 +97,13 @@ void program(){
 // topレベルでのparser関数
 Node *top(){
     locals = NULL;
+    scope_entry = NULL;
 
     Token *type_token = type_keyword();
 
     if (!type_token){
         error("型の定義がありません,");
     }
-
     token = token->next;
 
     // *の数だけTypeの連結リストを作る
@@ -163,6 +167,8 @@ Node *globl_var(Token *type_token, Token *indent_token, Type *type){
 
 Node *funcdef(Token *tok, Type *type){
 	locals = NULL;
+    scope_entry = NULL;
+
 	Node *node = calloc(1, sizeof(Node));
 
 	node->kind = ND_FUNCDEF;
@@ -240,14 +246,21 @@ Node *stmt(){
 	}
 
 	if (consume_if("if")){
+		enter_scope();
+
 		node = calloc(1, sizeof(Node));
 		node->kind = ND_IF;
 		expect("(");
 		node->cond = expr();
 		expect(")");
 		node->then = stmt();
+
+		leave_scope();
+
 		if(consume_else("else")){
+			enter_scope();
 			node->els = stmt();
+			leave_scope();
 		}
 		return node;
 	}
@@ -257,6 +270,8 @@ Node *stmt(){
 	if (consume("{")){
 		node = calloc(1, sizeof(Node));
 		node->kind = ND_BLOCK;
+
+		enter_scope();
 
 		Node head;
 		head.next = NULL;
@@ -271,6 +286,8 @@ Node *stmt(){
 
 		node->body = head.next;
 
+		leave_scope();
+
 		return node;
 	}
 
@@ -280,7 +297,9 @@ Node *stmt(){
 		expect("(");
 		node->lhs = expr();
 		expect(")");
+		enter_scope();
 		node->rhs = stmt();
+		leave_scope();
 		return node;
 	}
 
@@ -288,6 +307,7 @@ Node *stmt(){
 		node = calloc(1, sizeof(Node));
 		node->kind = ND_FOR;
 		expect("(");
+		enter_scope();
 		if (!consume(";")){
 			if (type_keyword()){
 				node->finit = parse_declaration();
@@ -307,6 +327,7 @@ Node *stmt(){
 			expect(")");
 		}
 		node->fthen = stmt();
+		leave_scope();
 		return node;
 	}
 
@@ -553,6 +574,30 @@ LVar *find_lvar(Token *tok){
 	return NULL;
 }
 
+LVar *find_double_define(Token *tok){
+    // 現在のスコープの下端。スコープに入っていなければNULL(=locals全体が現在スコープ)
+    LVar *end = scope_entry ? scope_entry->lvar : NULL;
+    for (LVar *var = locals; var != end; var = var->next){
+        if (var->len == tok->len && !memcmp(tok->str, var->name, var->len))
+            return var;
+    }
+    return NULL;
+}
+
+// 新しいスコープに入る: 現在のlocals先頭をScopeEntryに保存してpushする
+void enter_scope(){
+	ScopeEntry *se = calloc(1, sizeof(ScopeEntry));
+	se->lvar = locals;
+	se->next = scope_entry;
+	scope_entry = se;
+}
+
+// 現在のスコープから抜ける: localsをスコープ進入時点に巻き戻してpopする
+void leave_scope(){
+	locals = scope_entry->lvar;
+	scope_entry = scope_entry->next;
+}
+
 
 
 // 次のトークンが期待している記号の時は、トークンを一つ読み進める。
@@ -696,7 +741,8 @@ Node *parse_declaration(){
 
 	// 二重定義チェック
 	LVar *lvar = find_lvar(ident_tok);
-	if (lvar){
+
+	if (find_double_define(ident_tok)){
 		error("変数が二重に定義されています。");
 	}
 

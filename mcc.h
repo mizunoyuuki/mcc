@@ -192,6 +192,13 @@ struct LVar {
 	int offset;   // RBPからアクセスするためのオフセット値
 };
 
+typedef struct ScopeEntry ScopeEntry;
+
+struct ScopeEntry {
+	LVar *lvar;
+	ScopeEntry *next;
+};
+
 typedef struct GVar GVar;
 
 struct GVar {
@@ -206,6 +213,7 @@ struct GVar {
 extern Token *token;
 extern Node *code[100];
 extern LVar *locals;
+extern ScopeEntry *scope_entry;
 extern GVar *globls;
 extern TypeSpecifier type_specifiers[2];
 extern TypeRegistry *type_registry;

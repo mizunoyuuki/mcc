@@ -2891,3 +2891,716 @@ int main(){
     return scope_use_ten() + scope_use_twenty() + x;
 }
 '
+
+echo "=== ブロックスコープ（if/else/{}/while） ==="
+
+# 外側の変数が内側のブロックから見える（シャドーイングなし）
+assert 42 '
+int main(){
+    int a = 42;
+    if (1) {
+        return a;
+    }
+    return 0;
+}
+'
+
+assert 3 '
+int main(){
+    int a = 3;
+    {
+        return a;
+    }
+    return 0;
+}
+'
+
+assert 9 '
+int main(){
+    int a = 9;
+    int i = 0;
+    while (i < 1) {
+        i = i + 1;
+        return a;
+    }
+    return 0;
+}
+'
+
+# シャドーイング: 内側の同名変数が外側の同名変数を隠す
+assert 99 '
+int main(){
+    int a = 1;
+    if (1) {
+        int a = 99;
+        return a;
+    }
+    return 0;
+}
+'
+
+assert 77 '
+int main(){
+    int a = 1;
+    {
+        int a = 77;
+        return a;
+    }
+    return 0;
+}
+'
+
+# シャドーイングを抜けると外側の変数値はそのまま
+assert 1 '
+int main(){
+    int a = 1;
+    if (1) {
+        int a = 99;
+    }
+    return a;
+}
+'
+
+assert 1 '
+int main(){
+    int a = 1;
+    {
+        int a = 99;
+    }
+    return a;
+}
+'
+
+# if then節とelse節は独立したスコープ
+assert 5 '
+int main(){
+    if (0) {
+        int a = 3;
+        return a;
+    } else {
+        int a = 5;
+        return a;
+    }
+    return 0;
+}
+'
+
+assert 2 '
+int main(){
+    if (1) {
+        int a = 2;
+        return a;
+    } else {
+        int a = 3;
+        return a;
+    }
+    return 0;
+}
+'
+
+# then節/else節の同名変数宣言が外側に漏れない
+assert 10 '
+int main(){
+    int a = 10;
+    if (0) {
+        int a = 1;
+    } else {
+        int a = 2;
+    }
+    return a;
+}
+'
+
+# 連続する独立ブロックでスタックスロット再利用が破綻しない
+assert 7 '
+int main(){
+    if (1) {
+        int x = 100;
+    }
+    if (1) {
+        int y = 7;
+        return y;
+    }
+    return 0;
+}
+'
+
+assert 15 '
+int main(){
+    int r = 0;
+    if (1) {
+        int x = 7;
+        r = r + x;
+    }
+    if (1) {
+        int y = 8;
+        r = r + y;
+    }
+    return r;
+}
+'
+
+assert 42 '
+int main(){
+    int r = 0;
+    {
+        int a = 10;
+        r = r + a;
+    }
+    {
+        int b = 32;
+        r = r + b;
+    }
+    return r;
+}
+'
+
+# 深くネストした{}から全ての外側変数が見える
+assert 10 '
+int main(){
+    int a = 1;
+    {
+        int b = 2;
+        {
+            int c = 3;
+            {
+                int d = 4;
+                return a + b + c + d;
+            }
+        }
+    }
+    return 0;
+}
+'
+
+# 多段ネストで内側のシャドーイングが段階的に効く
+assert 3 '
+int main(){
+    int a = 1;
+    if (1) {
+        int a = 2;
+        if (1) {
+            int a = 3;
+            return a;
+        }
+    }
+    return 0;
+}
+'
+
+# 内側のブロックを抜けると中間レベルの変数が再び見える
+assert 2 '
+int main(){
+    int a = 1;
+    if (1) {
+        int a = 2;
+        if (1) {
+            int a = 99;
+        }
+        return a;
+    }
+    return 0;
+}
+'
+
+# while本体内のローカル変数宣言
+assert 5 '
+int main(){
+    int i = 0;
+    while (i < 5) {
+        int tmp = 1;
+        i = i + tmp;
+    }
+    return i;
+}
+'
+
+# while本体内のシャドーイングが外側に影響しない
+assert 10 '
+int main(){
+    int x = 10;
+    int i = 0;
+    while (i < 3) {
+        int x = 99;
+        i = i + 1;
+    }
+    return x;
+}
+'
+
+# while本体内のローカル変数経由で外側変数を更新
+assert 15 '
+int main(){
+    int sum = 0;
+    int i = 1;
+    while (i < 6) {
+        int val = i;
+        sum = sum + val;
+        i = i + 1;
+    }
+    return sum;
+}
+'
+
+# {}ブロック内で宣言した変数を外側変数に値として持ち出す
+assert 5 '
+int main(){
+    int result = 0;
+    {
+        int temp = 5;
+        result = temp;
+    }
+    return result;
+}
+'
+
+# if then節内で外側変数を経由して内側変数を持ち出す
+assert 42 '
+int main(){
+    int a = 0;
+    if (1) {
+        int b = 42;
+        a = b;
+    }
+    return a;
+}
+'
+
+echo "=== シャドーイング ==="
+
+# 内側の同名変数への代入は外側に波及しない
+assert 1 '
+int main(){
+    int a = 1;
+    if (1) {
+        int a = 99;
+        a = a + 1;
+    }
+    return a;
+}
+'
+
+# シャドーイング中の代入が外側に波及しないことを明示的にテスト
+# 外側 sum = 0+1+2 = 3。内側 sum への +1 は内側にしかいかない
+assert 3 '
+int main(){
+    int sum = 0;
+    sum = sum + 1;
+    if (1) {
+        int sum = 10;
+        sum = sum + 1;
+    }
+    sum = sum + 2;
+    return sum;
+}
+'
+
+# then節の内側代入とelse節の内側代入はどちらも外側に波及しない
+assert 100 '
+int main(){
+    int a = 100;
+    if (0) {
+        int a = 1;
+        a = a + 10;
+    } else {
+        int a = 2;
+        a = a + 20;
+    }
+    return a;
+}
+'
+
+# シャドーされる変数 a とされない変数 b が混在
+# 内側では a=10(シャドー), b=2(外側)のまま書き込み可能
+# 外側では a=1, b=12 になって合計13
+assert 13 '
+int main(){
+    int a = 1;
+    int b = 2;
+    if (1) {
+        int a = 10;
+        b = b + a;
+    }
+    return a + b;
+}
+'
+
+# シャドー中でも、シャドーされていない外側変数への書き込みは通る
+# 内側 a=100 を代入してもsumの計算には関係ない
+assert 30 '
+int main(){
+    int a = 5;
+    int sum = 0;
+    if (1) {
+        int a = 100;
+        sum = sum + 10;
+        sum = sum + 20;
+    }
+    return sum;
+}
+'
+
+# 三重ネスト: 各レベルのxが独立。抜けるたびに一段外側のxが見える
+# r = 2 + 4 + 8 + 4 + 2 + 1 = 21
+assert 21 '
+int main(){
+    int x = 1;
+    int r = 0;
+    {
+        int x = 2;
+        r = r + x;
+        {
+            int x = 4;
+            r = r + x;
+            {
+                int x = 8;
+                r = r + x;
+            }
+            r = r + x;
+        }
+        r = r + x;
+    }
+    r = r + x;
+    return r;
+}
+'
+
+# if文の多段ネストでも同様にシャドーイングが段階的に剥がれる
+# r = 2 + 4 + 2 + 1 = 9
+assert 9 '
+int main(){
+    int a = 1;
+    int r = 0;
+    if (1) {
+        int a = 2;
+        r = r + a;
+        if (1) {
+            int a = 4;
+            r = r + a;
+        }
+        r = r + a;
+    }
+    r = r + a;
+    return r;
+}
+'
+
+# while本体内のシャドーイング: 外側iは条件式で使われるが内側iへの代入で影響を受けない
+# 内側 i=1 は毎イテレーションで宣言される。外側 j は 0→1→2→3 と進む
+# 最終的に外側 i は 42 のまま
+assert 42 '
+int main(){
+    int i = 42;
+    int j = 0;
+    while (j < 3) {
+        int i = 1;
+        j = j + i;
+    }
+    return i;
+}
+'
+
+# 2つの独立した {} ブロックで同名変数 v を宣言しても衝突しない
+# r = 4 + 8 = 12
+assert 12 '
+int main(){
+    int r = 0;
+    {
+        int v = 4;
+        r = r + v;
+    }
+    {
+        int v = 8;
+        r = r + v;
+    }
+    return r;
+}
+'
+
+# 内側で宣言せず外側変数 a を直接書き換えるとちゃんと波及する(シャドーイングなしの確認)
+assert 10 '
+int main(){
+    int a = 0;
+    {
+        a = 10;
+    }
+    return a;
+}
+'
+
+# シャドーイングされた内側変数を別の外側変数経由で持ち出す
+# 内側 a=5 を b に保存、外側では a=10、b=5 → a+b=15
+assert 15 '
+int main(){
+    int a = 10;
+    int b = 0;
+    if (1) {
+        int a = 5;
+        b = a;
+    }
+    return a + b;
+}
+'
+
+# if then節でシャドーした変数と、else節でシャドーした変数は別インスタンス
+# 両方通ってきても外側 x=7 は不変
+assert 7 '
+int main(){
+    int x = 7;
+    if (1) {
+        int x = 1;
+        x = x + 10;
+    }
+    if (0) {
+        int x = 2;
+    } else {
+        int x = 3;
+        x = x + 20;
+    }
+    return x;
+}
+'
+
+echo "=== ブロック内 return とブロック外 return ==="
+
+# {} ブロック内で return(内側変数を直接返す)
+assert 42 '
+int main(){
+    {
+        int a = 42;
+        return a;
+    }
+    return 0;
+}
+'
+
+# {} ブロックは副作用だけで、return はブロック外で外側変数を返す
+assert 10 '
+int main(){
+    int a = 0;
+    {
+        int b = 10;
+        a = a + b;
+    }
+    return a;
+}
+'
+
+# if then節の内部で return
+assert 7 '
+int main(){
+    if (1) {
+        int a = 7;
+        return a;
+    }
+    return 0;
+}
+'
+
+# if は副作用だけで、return は if の外で
+assert 10 '
+int main(){
+    int sum = 0;
+    if (1) {
+        sum = sum + 10;
+    }
+    return sum;
+}
+'
+
+# else節の内部で return
+assert 2 '
+int main(){
+    if (0) {
+        return 1;
+    } else {
+        int a = 2;
+        return a;
+    }
+    return 0;
+}
+'
+
+# then/else は両方とも副作用のみ、return は外で
+assert 5 '
+int main(){
+    int r = 0;
+    if (1) {
+        int a = 5;
+        r = a;
+    } else {
+        int a = 10;
+        r = a;
+    }
+    return r;
+}
+'
+
+# while の中で早期 return
+assert 5 '
+int main(){
+    int i = 0;
+    while (i < 100) {
+        if (i == 5) {
+            return i;
+        }
+        i = i + 1;
+    }
+    return 0;
+}
+'
+
+# while は副作用のみで、return は while 抜けた後で
+assert 10 '
+int main(){
+    int i = 0;
+    int sum = 0;
+    while (i < 5) {
+        int tmp = i;
+        sum = sum + tmp;
+        i = i + 1;
+    }
+    return sum;
+}
+'
+
+# 三重ネストされた {} の最内で return
+assert 3 '
+int main(){
+    {
+        {
+            {
+                return 3;
+            }
+        }
+    }
+    return 0;
+}
+'
+
+# ネストされた if の最内で return
+assert 4 '
+int main(){
+    if (1) {
+        if (1) {
+            if (1) {
+                int a = 4;
+                return a;
+            }
+        }
+    }
+    return 0;
+}
+'
+
+# 中間レベルの {} 内で return。さらに内側の変数 c は既に抜けている
+assert 3 '
+int main(){
+    int a = 1;
+    {
+        int b = 2;
+        {
+            int c = 3;
+        }
+        return a + b;
+    }
+    return 0;
+}
+'
+
+# 連続する独立ブロックで外側変数を更新、ブロック外で return
+assert 30 '
+int main(){
+    int result = 0;
+    {
+        int x = 10;
+        result = x;
+    }
+    {
+        int y = 20;
+        result = result + y;
+    }
+    return result;
+}
+'
+
+# if/while/{} を混ぜたネストで内側から早期 return
+assert 3 '
+int main(){
+    int i = 0;
+    while (i < 10) {
+        if (i == 3) {
+            {
+                int captured = i;
+                return captured;
+            }
+        }
+        i = i + 1;
+    }
+    return 99;
+}
+'
+
+# シャドーイング中に内側で return すると内側の値が返る
+assert 99 '
+int main(){
+    int a = 1;
+    if (1) {
+        int a = 99;
+        return a;
+    }
+    return 0;
+}
+'
+
+# シャドーイングを抜けた後で return すると外側の値が返る
+assert 1 '
+int main(){
+    int a = 1;
+    if (1) {
+        int a = 99;
+    }
+    return a;
+}
+'
+
+# ループ内で条件を満たしたら外側変数に値を保存してからブロック外 return
+assert 8 '
+int main(){
+    int i = 0;
+    int found = 0;
+    while (i < 10) {
+        if (i == 8) {
+            int tmp = i;
+            found = tmp;
+        }
+        i = i + 1;
+    }
+    return found;
+}
+'
+
+# 関数の最後の文がブロック: ブロック内に return があっても壊れない
+assert 55 '
+int main(){
+    int a = 55;
+    {
+        int b = 0;
+        b = a;
+        return b;
+    }
+}
+'
+
+# 関数の最後の文がブロック: ブロック内に return がなければ副作用のみ
+# (関数全体としての return は outer 側で明示)
+assert 77 '
+int main(){
+    int result = 0;
+    {
+        int tmp = 77;
+        result = tmp;
+    }
+    return result;
+}
+'

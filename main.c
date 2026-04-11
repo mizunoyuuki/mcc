@@ -23,6 +23,7 @@ void initialize_type_registry(void);
 Token *token;
 Node *code[100];
 LVar *locals;
+ScopeEntry *scope_entry;
 GVar *globls;
 FuncEntry *func_entry;
 StrLiteral *str_literals;
