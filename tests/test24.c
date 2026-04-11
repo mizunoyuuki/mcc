@@ -1,0 +1,7 @@
+// EXPECT: 14
+// SECTION: 複数文・ローカル変数
+int main(){
+int abc = 23;
+int def = 10;
+def = 234 - 220;
+}

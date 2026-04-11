@@ -1,0 +1,3 @@
+// EXPECT: 0
+// SECTION: 比較演算子
+int main(){0==1;}
