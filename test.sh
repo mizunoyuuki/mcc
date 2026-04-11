@@ -2613,3 +2613,281 @@ int main(){
     return !'\''\0'\'';
 }
 '
+
+echo "=== 関数ごとのスコープ（同名ローカル変数） ==="
+
+# 2つの関数で同じ変数名を使っても互いに干渉しない
+assert 30 '
+int scope_a(){
+    int x = 10;
+    return x;
+}
+int scope_b(){
+    int x = 20;
+    return x;
+}
+int main(){
+    return scope_a() + scope_b();
+}
+'
+
+# 呼び出し順を逆にしても同じ結果
+assert 30 '
+int scope_a(){
+    int x = 10;
+    return x;
+}
+int scope_b(){
+    int x = 20;
+    return x;
+}
+int main(){
+    return scope_b() + scope_a();
+}
+'
+
+# 呼び出し元のxは呼び出し先のxに影響されない
+assert 15 '
+int scope_sub(){
+    int x = 100;
+    return x;
+}
+int main(){
+    int x = 15;
+    scope_sub();
+    return x;
+}
+'
+
+# 3つの関数で同じ変数名a, bを使う
+assert 6 '
+int scope_f(){
+    int a = 1;
+    int b = 2;
+    return a + b;
+}
+int scope_g(){
+    int a = 10;
+    int b = 20;
+    return a - b + 20;
+}
+int main(){
+    int a = 100;
+    int b = 200;
+    return scope_f() + scope_g() - 7;
+}
+'
+
+# 関数引数と他の関数のローカル変数が同じ名前
+assert 12 '
+int scope_add_one(int x){
+    return x + 1;
+}
+int main(){
+    int x = 11;
+    return scope_add_one(x);
+}
+'
+
+# 引数名と呼び出し元変数名が一致していても、別物として扱われる
+assert 42 '
+int scope_double_it(int n){
+    n = n * 2;
+    return n;
+}
+int main(){
+    int n = 21;
+    scope_double_it(n);
+    return n + 21;
+}
+'
+
+# 再帰関数で同じ変数名を使っても、各呼び出しが独立したスタックフレームを持つ
+assert 15 '
+int scope_sum(int n){
+    if (n == 0) return 0;
+    return n + scope_sum(n - 1);
+}
+int main(){
+    return scope_sum(5);
+}
+'
+
+# 再帰で複数のローカル変数を持つ
+assert 24 '
+int scope_fact(int n){
+    int r;
+    if (n == 0) return 1;
+    r = n * scope_fact(n - 1);
+    return r;
+}
+int main(){
+    return scope_fact(4);
+}
+'
+
+# 同じ名前の変数を別々の関数で独立に加算する
+assert 8 '
+int scope_inc_five(){
+    int count = 0;
+    for (int i = 0; i < 5; i = i + 1)
+        count = count + 1;
+    return count;
+}
+int scope_inc_three(){
+    int count = 0;
+    for (int i = 0; i < 3; i = i + 1)
+        count = count + 1;
+    return count;
+}
+int main(){
+    return scope_inc_five() + scope_inc_three();
+}
+'
+
+# 関数内のxが外部から変更されないことを再帰で確認
+assert 55 '
+int scope_fib(int n){
+    if (n == 0) return 0;
+    if (n == 1) return 1;
+    return scope_fib(n - 1) + scope_fib(n - 2);
+}
+int main(){
+    return scope_fib(10);
+}
+'
+
+echo "=== グローバル変数とローカル変数の名前衝突 ==="
+
+# グローバル変数と同名のローカル変数 => ローカルが優先される（シャドーイング）
+assert 5 '
+int x;
+int main(){
+    int x = 5;
+    return x;
+}
+'
+
+# ローカル変数でシャドーイングしてもグローバルは変更されない
+assert 100 '
+int x;
+int scope_get_global_x(){
+    return x;
+}
+int main(){
+    x = 100;
+    int x = 7;
+    x = 8;
+    return scope_get_global_x();
+}
+'
+
+# グローバルxとローカルxを別々に読み書き
+assert 13 '
+int x;
+int scope_read_global(){
+    return x;
+}
+int main(){
+    x = 10;
+    int x = 3;
+    return x + scope_read_global();
+}
+'
+
+# 関数内ではグローバル、別関数ではローカルで同名
+assert 42 '
+int val;
+int scope_set_global(){
+    val = 40;
+    return 0;
+}
+int scope_use_local(){
+    int val = 2;
+    return val;
+}
+int main(){
+    scope_set_global();
+    return val + scope_use_local();
+}
+'
+
+# グローバル変数と関数引数の名前が一致 => 引数優先
+assert 7 '
+int n;
+int scope_add_to_arg(int n){
+    return n + 5;
+}
+int main(){
+    n = 100;
+    return scope_add_to_arg(2);
+}
+'
+
+# グローバルがシャドーイングされてもメモリ上は保持されている
+assert 50 '
+int counter;
+int scope_inc_global(){
+    counter = counter + 1;
+    return counter;
+}
+int main(){
+    counter = 0;
+    int counter = 999;
+    scope_inc_global();
+    scope_inc_global();
+    scope_inc_global();
+    return counter - 949;
+}
+'
+
+# 複数のグローバルと複数のローカルが混在
+assert 11 '
+int a;
+int b;
+int main(){
+    a = 1;
+    b = 2;
+    int a = 3;
+    int b = 4;
+    return a + b + a + 1;
+}
+'
+
+# 関数がグローバルを更新し、別関数で同名ローカルが独立していることを確認
+assert 20 '
+int shared;
+int scope_inc_shared(){
+    shared = shared + 1;
+    return shared;
+}
+int scope_local_only(){
+    int shared = 100;
+    return shared;
+}
+int main(){
+    shared = 0;
+    scope_inc_shared();
+    scope_inc_shared();
+    scope_inc_shared();
+    scope_local_only();
+    return shared + 17;
+}
+'
+
+# グローバルxがあって、複数関数のローカルxが独立
+assert 33 '
+int x;
+int scope_use_ten(){
+    int x = 10;
+    return x;
+}
+int scope_use_twenty(){
+    int x = 20;
+    return x;
+}
+int main(){
+    x = 3;
+    return scope_use_ten() + scope_use_twenty() + x;
+}
+'

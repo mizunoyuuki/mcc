@@ -1,0 +1,46 @@
+C言語のスコープには階層があり、どこで変数宣言ができるかは文法上厳密に決まっている。
+
+C言語のスコープの種類は４種類ある。(C11規格)
+
+ファイルスコープ(file scope)  関数の外で宣言された識別子、ファイル全体で有効
+ブロックスコープ(block scope) { から }までの間で宣言された識別子
+関数スコープ(function scope)  gotoラベル専用。関数全体で有効
+関数プロトタイプスコープ(fuction prototype scope) 関数プロトタイプ宣言の(...)内の引数名専用
+
+例えば、
+C言語仕様では、if () の中では変数宣言ができない。
+
+if (int i = 0)
+
+これはでいない。
+Cの文法は、
+if-statement
+   if (expression) statement;
+   if (expression) statement statement;
+
+   ()の中には、expressionしか書けない。declarationは書けない。
+
+   ちなみにC++だとかける。(C++ 17以降)
+
+while文の中で変数宣言ができるか？できない。
+
+while (expression) statement;
+
+for文の中で変数宣言はできるか。最初の節でのみ変数宣言が可能
+
+
+for(int i = 0; i < 10; i = i + 1) C99以降はOK
+
+for文は特別扱いで
+
+for-statement
+
+  for(declaration expression(opt); expressoin(opt)) statementのように
+  最初の節だけ、変数宣言がかけるという特別ルールがある。
+
+
+for文の初期化子での宣言は、C99で追加された比較的新しい書き方。
+K&RやC89しかしらないプログラマは、今でも「変数宣言は関数先頭にまとめる」という古いスタイルで書くことを好む。
+
+ようはブロックスコープとfor文の特殊ターンを実装すればいい。
+
