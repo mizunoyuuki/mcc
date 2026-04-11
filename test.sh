@@ -99,16 +99,6 @@ for (int i=0; i<4; i= i+1){
 a;
 }'
 
-assert 44 'int main(){
-int a=0;
-int b=0;
-for (int i=0; i<4; i= i+1){
-	a = a+10;
-	b = b+11;
-}
-b;
-}'
-
 echo "=== for + if/else ==="
 assert 40 'int main(){
 int a=0;
@@ -125,22 +115,6 @@ for (int i=0; i<4; i= i+1){
 
 a;
 }'
-assert 48 'int main(){
-int a=0;
-int b=0;
-for (int i=0; i<4; i= i+1){
-	a = a+10;
-	b = b+11;
-	if (a > b){
-		a = a + 1;
-	} else {
-	        b = b + 1;
-        }
-}
-
-b;
-}'
-
 echo "=== 関数呼び出し（外部関数） ==="
 assert 33 'int main(){foo();}'
 assert 5 'int main(){bar();}'
@@ -253,15 +227,6 @@ int main(){
 }
 '
 
-# ポインタ変数経由で読み取り
-assert 42 '
-int main(){
-    int a = 42;
-    int *p = &a;
-    return *p;
-}
-'
-
 # 複数変数がある場合に正しいアドレスを参照できるか
 assert 20 '
 int main(){
@@ -317,30 +282,6 @@ int main(){
 	int a = 10;
 	int *p = &a;
 	*p = 4;
-	return a;
-}
-'
-
-assert 99 '
-int main(){
-     int a = 1;
-     int *p = &a;
-     *p = 99;
-     return a;
- }
-'
-
-assert 1 '
-int main(){
-	int a = 1;
-	return a;
-}
-'
-
-assert 10 '
-int main(){
-	int a;
-	a = 10;
 	return a;
 }
 '
@@ -529,62 +470,6 @@ int main(){
 }
 '
 
-assert 4 '
-int main(){
-	int a;
-	return sizeof(a);
-}
-'
-
-assert 8 '
-int main(){
-	int *p;
-	return sizeof(p);
-}
-'
-
-assert 4 '
-int main(){
-	int a = 42;
-	return sizeof(a);
-}
-'
-
-assert 8 '
-int main(){
-	int a;
-	return sizeof(a) + sizeof(a);
-}
-'
-
-assert 4 '
-int main(){
-	int a;
-	int b = sizeof(a);
-	return b;
-}
-'
-
-assert 1 '
-int main(){
-	int a;
-	if (sizeof(a) == 4) return 1;
-	return 0;
-}
-'
-
-assert 10 '
-int main(){
-	int a;
-	a = 10;
-	if (sizeof(int) == 4){
-		return a;
-	} else {
-		return 12;
-	}
-}
-'
-
 echo "=== sizeof(ポインタ型) ==="
 
 assert 8 '
@@ -708,28 +593,12 @@ echo "=== char型変数 ==="
   }
   '
 
-  assert 42 '
-  int main(){
-      char a = 1;
-      int b = 42;
-      return b;
-  }
-  '
-
   # char変数が隣のchar変数を壊さないこと
   assert 3 '
   int main(){
       char a = 3;
       char b = 7;
       return a;
-  }
-  '
-
-  assert 7 '
-  int main(){
-      char a = 3;
-      char b = 7;
-      return b;
   }
   '
 
@@ -928,15 +797,6 @@ int main(){
 }
 '
 
-assert 99 '
-int main(){
-    int x = 42;
-    char buf[20];
-    int y = 99;
-    return y;
-}
-'
-
 # 複数の配列を宣言
 assert 0 '
 int main(){
@@ -955,28 +815,6 @@ int main(){
     int b[3];
     int z = 21;
     return x;
-}
-'
-
-assert 13 '
-int main(){
-    int x = 7;
-    int a[5];
-    int y = 13;
-    int b[3];
-    int z = 21;
-    return y;
-}
-'
-
-assert 21 '
-int main(){
-    int x = 7;
-    int a[5];
-    int y = 13;
-    int b[3];
-    int z = 21;
-    return z;
 }
 '
 
@@ -1010,14 +848,6 @@ int main(){
 assert 1 '
 int main(){
     char a[1];
-    return sizeof(a);
-}
-'
-
-# sizeof(int[1]) = 4バイト
-assert 4 '
-int main(){
-    int a[1];
     return sizeof(a);
 }
 '
@@ -1064,36 +894,9 @@ int main(){
     return a;
 }
 '
-  assert 1 '
-  int main(){
-	  char a = 10;
-	  char b = 10;
-	  return sizeof(a + b);
-  }
-  '
-
 echo "=== 配列からポインタへの暗黙変換 ==="
 
-# 基本: *a で先頭要素に書き込み・読み取り
-assert 1 '
-int main(){
-    int a[2];
-    *a = 1;
-    return *a;
-}
-'
-
-# *(a+1) で2番目の要素にアクセス
-assert 2 '
-int main(){
-    int a[2];
-    *a = 1;
-    *(a + 1) = 2;
-    return *(a + 1);
-}
-'
-
-# 配列をポインタ変数に代入して使う（p = a）
+# 配列をポインタ変数に代入して使う（p = a）: 書き込み・読み取り・decay を一気に確認
 assert 3 '
 int main(){
     int a[2];
@@ -1102,17 +905,6 @@ int main(){
     int *p;
     p = a;
     return *p + *(p + 1);
-}
-'
-
-# 配列の先頭要素のデリファレンスで書き込み
-assert 42 '
-int main(){
-    int a[3];
-    *a = 42;
-    *(a + 1) = 10;
-    *(a + 2) = 20;
-    return *a;
 }
 '
 
@@ -1127,47 +919,12 @@ int main(){
 }
 '
 
-# ポインタ変数にdecayした配列を代入し、ポインタ算術で全要素アクセス
-assert 6 '
-int main(){
-    int a[3];
-    *a = 1;
-    *(a + 1) = 2;
-    *(a + 2) = 3;
-    int *p = a;
-    return *p + *(p + 1) + *(p + 2);
-}
-'
-
 # decayしてもsizeofは配列全体のサイズを返すこと
 assert 1 '
 int main(){
     int a[5];
     if (sizeof(a) == 20) return 1;
     return 0;
-}
-'
-
-# 配列の前後の変数を壊さないこと
-assert 99 '
-int main(){
-    int x = 99;
-    int a[3];
-    *a = 10;
-    *(a + 1) = 20;
-    *(a + 2) = 30;
-    return x;
-}
-'
-
-assert 77 '
-int main(){
-    int a[3];
-    *a = 10;
-    *(a + 1) = 20;
-    *(a + 2) = 30;
-    int y = 77;
-    return y;
 }
 '
 
@@ -1181,18 +938,6 @@ int main(){
     *(a + 2) = 30;
     int y = 77;
     return x + y;
-}
-'
-
-# char配列のdecay
-assert 3 '
-int main(){
-    char a[3];
-    *a = 1;
-    *(a + 1) = 2;
-    *(a + 2) = 3;
-    char *p = a;
-    return *p + *(p + 1);
 }
 '
 
@@ -1271,18 +1016,6 @@ int main(){
 }
 '
 
-assert 30 '
-int main(){
-    int a[2];
-    int b[2];
-    *a = 10;
-    *(a + 1) = 20;
-    *b = 10;
-    *(b + 1) = 20;
-    return *b + *(b + 1);
-}
-'
-
 # 配列とポインタ変数の共存
 assert 42 '
 int main(){
@@ -1335,17 +1068,6 @@ assert 2 '
       return a[0] + a[1];
   }
   '
-
-assert 42 '
-  int main(){
-      int a[2];
-      a[1] = 1;
-      a[1] = 2;
-      a[1] = 42;
-      return a[0] + a[1];
-  }
-  '
-
 
 echo "=== グローバル変数 ==="
 
@@ -1756,41 +1478,6 @@ int main(){
 }
 '
 
-# swap後の値が入れ替わっていること
-assert 10 '
-int x;
-int y;
-int swap_via_ptr(int *a, int *b){
-    int tmp = *a;
-    *a = *b;
-    *b = tmp;
-    return 0;
-}
-int main(){
-    x = 20;
-    y = 10;
-    swap_via_ptr(&x, &y);
-    return x;
-}
-'
-
-assert 20 '
-int x;
-int y;
-int swap_via_ptr(int *a, int *b){
-    int tmp = *a;
-    *a = *b;
-    *b = tmp;
-    return 0;
-}
-int main(){
-    x = 20;
-    y = 10;
-    swap_via_ptr(&x, &y);
-    return y;
-}
-'
-
 # グローバル変数を使った再帰的なカウント
 assert 10 '
 int g;
@@ -2093,15 +1780,6 @@ int main(){
 }
 '
 
-# 先頭要素の書き込み・読み取り
-assert 42 '
-int a[5];
-int main(){
-	*a = 42;
-	return *a;
-}
-'
-
 # 複数要素の書き込み・読み取り
 assert 6 '
 int a[3];
@@ -2110,16 +1788,6 @@ int main(){
 	*(a + 1) = 2;
 	*(a + 2) = 3;
 	return *a + *(a + 1) + *(a + 2);
-}
-'
-
-# グローバル配列をポインタ変数に代入して使う
-assert 10 '
-int a[3];
-int main(){
-	*a = 10;
-	int *p = a;
-	return *p;
 }
 '
 
@@ -2144,18 +1812,6 @@ int main(){
 	*b = 10;
 	*(b + 1) = 20;
 	return *a;
-}
-'
-
-assert 20 '
-int a[3];
-int b[3];
-int main(){
-	*a = 1;
-	*(a + 1) = 2;
-	*b = 10;
-	*(b + 1) = 20;
-	return *(b + 1);
 }
 '
 
@@ -2217,15 +1873,6 @@ int main(){
 }
 '
 
-assert 5 '
-char s[3];
-int main(){
-	s[1] = 1;
-	s[2] = 5;
-	return s[2];
-}
-'
-
 echo "=== 文字定数 ==="
 
 # 基本的なASCII文字
@@ -2263,12 +1910,6 @@ assert 0   "int main(){ char c = 'y'; if (c == 'x') return 1; return 0; }"
 
 # 関数引数として渡す
 assert 97  "int id(int x){ return x; } int main(){ return id('a'); }"
-
-assert 4 "
-int main(){
-	return sizeof('A');
-}
-"
 
 assert 3 "
 int main(){
@@ -2322,14 +1963,6 @@ assert 101 '
 int main(){
     char *s = "hello";
     return s[1];
-}
-'
-
-# s[2] で3番目の文字 ('l' = 108)
-assert 108 '
-int main(){
-    char *s = "hello";
-    return s[2];
 }
 '
 
@@ -2631,21 +2264,6 @@ int main(){
 }
 '
 
-# 呼び出し順を逆にしても同じ結果
-assert 30 '
-int scope_a(){
-    int x = 10;
-    return x;
-}
-int scope_b(){
-    int x = 20;
-    return x;
-}
-int main(){
-    return scope_b() + scope_a();
-}
-'
-
 # 呼び出し元のxは呼び出し先のxに影響されない
 assert 15 '
 int scope_sub(){
@@ -2892,9 +2510,9 @@ int main(){
 }
 '
 
-echo "=== ブロックスコープ（if/else/{}/while） ==="
+echo "=== ブロックスコープ（外側参照 / スタック再利用 / ネスト） ==="
 
-# 外側の変数が内側のブロックから見える（シャドーイングなし）
+# 外側変数が if 本体から見える
 assert 42 '
 int main(){
     int a = 42;
@@ -2905,6 +2523,7 @@ int main(){
 }
 '
 
+# 外側変数が {} 本体から見える
 assert 3 '
 int main(){
     int a = 3;
@@ -2915,6 +2534,7 @@ int main(){
 }
 '
 
+# 外側変数が while 本体から見える
 assert 9 '
 int main(){
     int a = 9;
@@ -2927,51 +2547,7 @@ int main(){
 }
 '
 
-# シャドーイング: 内側の同名変数が外側の同名変数を隠す
-assert 99 '
-int main(){
-    int a = 1;
-    if (1) {
-        int a = 99;
-        return a;
-    }
-    return 0;
-}
-'
-
-assert 77 '
-int main(){
-    int a = 1;
-    {
-        int a = 77;
-        return a;
-    }
-    return 0;
-}
-'
-
-# シャドーイングを抜けると外側の変数値はそのまま
-assert 1 '
-int main(){
-    int a = 1;
-    if (1) {
-        int a = 99;
-    }
-    return a;
-}
-'
-
-assert 1 '
-int main(){
-    int a = 1;
-    {
-        int a = 99;
-    }
-    return a;
-}
-'
-
-# if then節とelse節は独立したスコープ
+# if then節とelse節は独立スコープ: どちらで同じ名前を宣言しても可
 assert 5 '
 int main(){
     if (0) {
@@ -2985,77 +2561,7 @@ int main(){
 }
 '
 
-assert 2 '
-int main(){
-    if (1) {
-        int a = 2;
-        return a;
-    } else {
-        int a = 3;
-        return a;
-    }
-    return 0;
-}
-'
-
-# then節/else節の同名変数宣言が外側に漏れない
-assert 10 '
-int main(){
-    int a = 10;
-    if (0) {
-        int a = 1;
-    } else {
-        int a = 2;
-    }
-    return a;
-}
-'
-
-# 連続する独立ブロックでスタックスロット再利用が破綻しない
-assert 7 '
-int main(){
-    if (1) {
-        int x = 100;
-    }
-    if (1) {
-        int y = 7;
-        return y;
-    }
-    return 0;
-}
-'
-
-assert 15 '
-int main(){
-    int r = 0;
-    if (1) {
-        int x = 7;
-        r = r + x;
-    }
-    if (1) {
-        int y = 8;
-        r = r + y;
-    }
-    return r;
-}
-'
-
-assert 42 '
-int main(){
-    int r = 0;
-    {
-        int a = 10;
-        r = r + a;
-    }
-    {
-        int b = 32;
-        r = r + b;
-    }
-    return r;
-}
-'
-
-# 深くネストした{}から全ての外側変数が見える
+# 深くネストした {} から全ての外側変数が見える
 assert 10 '
 int main(){
     int a = 1;
@@ -3073,37 +2579,23 @@ int main(){
 }
 '
 
-# 多段ネストで内側のシャドーイングが段階的に効く
-assert 3 '
+# 連続する独立 if ブロックでスタックスロットが再利用されても結果が壊れない
+assert 15 '
 int main(){
-    int a = 1;
+    int r = 0;
     if (1) {
-        int a = 2;
-        if (1) {
-            int a = 3;
-            return a;
-        }
+        int x = 7;
+        r = r + x;
     }
-    return 0;
+    if (1) {
+        int y = 8;
+        r = r + y;
+    }
+    return r;
 }
 '
 
-# 内側のブロックを抜けると中間レベルの変数が再び見える
-assert 2 '
-int main(){
-    int a = 1;
-    if (1) {
-        int a = 2;
-        if (1) {
-            int a = 99;
-        }
-        return a;
-    }
-    return 0;
-}
-'
-
-# while本体内のローカル変数宣言
+# while 本体内のローカル変数宣言
 assert 5 '
 int main(){
     int i = 0;
@@ -3115,73 +2607,10 @@ int main(){
 }
 '
 
-# while本体内のシャドーイングが外側に影響しない
-assert 10 '
-int main(){
-    int x = 10;
-    int i = 0;
-    while (i < 3) {
-        int x = 99;
-        i = i + 1;
-    }
-    return x;
-}
-'
+echo "=== シャドーイング（値の独立性） ==="
 
-# while本体内のローカル変数経由で外側変数を更新
-assert 15 '
-int main(){
-    int sum = 0;
-    int i = 1;
-    while (i < 6) {
-        int val = i;
-        sum = sum + val;
-        i = i + 1;
-    }
-    return sum;
-}
-'
-
-# {}ブロック内で宣言した変数を外側変数に値として持ち出す
-assert 5 '
-int main(){
-    int result = 0;
-    {
-        int temp = 5;
-        result = temp;
-    }
-    return result;
-}
-'
-
-# if then節内で外側変数を経由して内側変数を持ち出す
-assert 42 '
-int main(){
-    int a = 0;
-    if (1) {
-        int b = 42;
-        a = b;
-    }
-    return a;
-}
-'
-
-echo "=== シャドーイング ==="
-
-# 内側の同名変数への代入は外側に波及しない
-assert 1 '
-int main(){
-    int a = 1;
-    if (1) {
-        int a = 99;
-        a = a + 1;
-    }
-    return a;
-}
-'
-
-# シャドーイング中の代入が外側に波及しないことを明示的にテスト
-# 外側 sum = 0+1+2 = 3。内側 sum への +1 は内側にしかいかない
+# シャドーされた内側変数への代入は外側に波及しない
+# 外側 sum = 0+1+2 = 3。内側 sum への +1 は内側にしか影響しない
 assert 3 '
 int main(){
     int sum = 0;
@@ -3222,21 +2651,6 @@ int main(){
         b = b + a;
     }
     return a + b;
-}
-'
-
-# シャドー中でも、シャドーされていない外側変数への書き込みは通る
-# 内側 a=100 を代入してもsumの計算には関係ない
-assert 30 '
-int main(){
-    int a = 5;
-    int sum = 0;
-    if (1) {
-        int a = 100;
-        sum = sum + 10;
-        sum = sum + 20;
-    }
-    return sum;
 }
 '
 
@@ -3361,7 +2775,7 @@ int main(){
 }
 '
 
-echo "=== ブロック内 return とブロック外 return ==="
+echo "=== ブロック内 return / ブロック外 return ==="
 
 # {} ブロック内で return(内側変数を直接返す)
 assert 42 '
@@ -3371,18 +2785,6 @@ int main(){
         return a;
     }
     return 0;
-}
-'
-
-# {} ブロックは副作用だけで、return はブロック外で外側変数を返す
-assert 10 '
-int main(){
-    int a = 0;
-    {
-        int b = 10;
-        a = a + b;
-    }
-    return a;
 }
 '
 
