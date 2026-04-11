@@ -93,6 +93,7 @@ typedef enum {
 	ND_LE,       // <=
 	ND_GT,       // >
 	ND_GE,       // >=
+	ND_NOT,      // !
 	ND_ASSIGN,   // =(代入)
 	ND_LVAR,     // ローカル変
         ND_RETURN,   // return

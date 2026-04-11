@@ -77,6 +77,14 @@ void gen (Node *node){
 			printf("    push rax\n");
 			return;
 
+        case ND_NOT:
+            gen(node->lhs);
+            printf("    pop rax\n");
+            printf("    cmp rax, 0\n");
+            printf("    sete al\n");
+            printf("    movzb rax, al\n");
+            printf("    push rax\n");
+            return;
 		case ND_ASSIGN:
             // グローバル変数の時と、ローカル変数の時で扱いを変える。
 			gen_lval(node->lhs);

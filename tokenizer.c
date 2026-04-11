@@ -146,6 +146,12 @@ Token *tokenize(char *p){
 			continue;
 		}
 
+        if (*p == '!'){
+            cur = new_token(TK_RESERVED, cur, p, 1);
+            p += 1;
+            continue;
+        }
+
         int a = is_char_const(p);
         if(a){
             cur = new_token(TK_CHAR_CONST, cur, p, a);

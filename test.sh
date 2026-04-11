@@ -2459,3 +2459,157 @@ int main(){
     return strlen_impl("hello");
 }
 '
+
+echo "=== 論理否定演算子 ! ==="
+
+# !0 = 1
+assert 1 '
+int main(){
+    return !0;
+}
+'
+
+# !1 = 0
+assert 0 '
+int main(){
+    return !1;
+}
+'
+
+# !非ゼロ値 = 0
+assert 0 '
+int main(){
+    return !42;
+}
+'
+
+# 変数に対する !
+assert 1 '
+int main(){
+    int x = 0;
+    return !x;
+}
+'
+
+assert 0 '
+int main(){
+    int x = 5;
+    return !x;
+}
+'
+
+# 二重否定 !!x（右結合テスト: unary() が unary() を再帰呼び出ししている確認）
+assert 1 '
+int main(){
+    int x = 5;
+    return !!x;
+}
+'
+
+assert 0 '
+int main(){
+    int x = 0;
+    return !!x;
+}
+'
+
+# 三重否定
+assert 0 '
+int main(){
+    int x = 5;
+    return !!!x;
+}
+'
+
+# if 条件での使用
+assert 10 '
+int main(){
+    int x = 0;
+    if (!x) return 10;
+    return 20;
+}
+'
+
+assert 20 '
+int main(){
+    int x = 1;
+    if (!x) return 10;
+    return 20;
+}
+'
+
+# while 条件での使用
+assert 5 '
+int main(){
+    int x = 0;
+    int i = 0;
+    while (!x){
+        i = i + 1;
+        if (i == 5) x = 1;
+    }
+    return i;
+}
+'
+
+# ! と比較演算の組み合わせ
+assert 1 '
+int main(){
+    int a = 3;
+    int b = 3;
+    return !(a != b);
+}
+'
+
+assert 1 '
+int main(){
+    int a = 3;
+    int b = 5;
+    return !(a == b);
+}
+'
+
+# ! と算術演算の組み合わせ（type.c の ND_NOT 型付けが必要）
+assert 2 '
+int main(){
+    int x = 0;
+    return !x + 1;
+}
+'
+
+assert 1 '
+int main(){
+    int x = 5;
+    return !x + 1;
+}
+'
+
+# !x を代入してから使う
+assert 1 '
+int main(){
+    int x = 0;
+    int y = !x;
+    return y;
+}
+'
+
+# ポインタに対する !（NULLチェックの代わり。初期化なしポインタは未定義なので、意味あるアドレスを取る）
+assert 0 '
+int main(){
+    int a = 10;
+    int *p = &a;
+    return !p;
+}
+'
+
+# 文字定数に対する !
+assert 0 '
+int main(){
+    return !'\''a'\'';
+}
+'
+
+assert 1 '
+int main(){
+    return !'\''\0'\'';
+}
+'

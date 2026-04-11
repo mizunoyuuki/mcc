@@ -243,6 +243,12 @@ void add_type(Node *node){
             node->type = t_sizeof;
 
             break;
+        case ND_NOT:
+            Type *t_not = calloc(1, sizeof(Type));
+            t_not->kind = TY_INT;
+            t_not->size = INT_SIZE;
+            node->type = t_not;
+            break;
         default:
             break;
     }

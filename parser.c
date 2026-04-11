@@ -420,6 +420,13 @@ Node *unary(){
 
         return node;
     }
+
+    if (consume("!")){
+        Node *node = calloc(1, sizeof(Node));
+        node->kind = ND_NOT;
+        node->lhs = unary();
+        return node;
+    }
 	return primary();
 }
 
