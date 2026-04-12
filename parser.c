@@ -1,5 +1,4 @@
 #include"mcc.h" 
-
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs){
 	Node *node = calloc(1, sizeof(Node));
 	node->kind = kind;
@@ -68,6 +67,7 @@ LVar *find_double_define(Token *tok);
 FuncEntry *find_func(Token *);
 
 TypeRegistry *find_type_registry(Token*);
+TagEntry *find_tag_entry(Token *);
 
 Token *consume_ident(void);
 int consume_type_size(void);
@@ -81,10 +81,17 @@ bool consume_sizeof(char *op);
 void enter_scope(void);
 void leave_scope(void);
 
+void compute_member_offset(Type *);
+int align_to(int, int);
+
 void program(){
 	int i = 0;
 	while (!at_eof()){
-		code[i++] = top();
+        Node *node = top();
+
+        if (node){
+            code[i++] = node;
+        }
 	}
 
 	code[i] = NULL;
@@ -94,6 +101,29 @@ void program(){
 // params        = ident ( "," ident )*
 //
 
+// structのmemberオフセットの計算関数
+int align_to(int offset, int align){
+    return (offset + align -1) & ~(align - 1);
+}
+
+void compute_member_offset(Type *type){
+    int offset = 0;
+    int max_align = 1;
+
+    for (Member *m = type->member; m; m = m->next){
+        offset = align_to(offset, m->type->align);
+        m->offset = offset;
+        offset += m->type->size;
+
+        if (m->type->align > max_align)
+            max_align = m->type->align;
+    }
+
+    type->size = align_to(offset, max_align);
+    type->align = max_align;
+    return;
+}
+
 // topレベルでのparser関数
 Node *top(){
     locals = NULL;
@@ -101,61 +131,133 @@ Node *top(){
 
     Token *type_token = type_keyword();
 
-    if (!type_token){
-        error("型の定義がありません,");
-    }
-    token = token->next;
+    // 構造体タグの定義, structが書いてあった場合
+    if (type_token && type_token->kind == TK_STRUCT){
+        token = token->next;
 
-    // *の数だけTypeの連結リストを作る
-    Type head;
-    head.to_ptr = NULL;
-    Type *cur = &head;
-    while (consume("*")){
-        Type *t = calloc(1, sizeof(Type));
-        t->kind = TY_PTR;
-        t->size = PTR_SIZE;
-        cur->to_ptr = t;
-        cur = cur->to_ptr;
-    }
+        Token *token_ident = consume_ident();
 
-    // 新しく作った型でも認識して続ける。
-    TypeRegistry *ty_regi = find_type_registry(type_token);
+        // structのタグ定義の処理
+        TagEntry *tag = calloc(1, sizeof(TagEntry));
+        Type *type = calloc(1, sizeof(Type));
 
-	if (!ty_regi){
-		error("型がありません。");
-	}
+        // メンバの走査
+        // struct Name {
+        //   int a;
+        //   type c;
+        //   NewType *c;
+        //   struct NewTag name;
+        // }
 
-    // identityトークンをを取得する
-    Token *token_ident = consume_ident();
+        Member head;
+        Member *cur_member = &head;
+        if (consume("{")){
+            while(!consume("}")){
+                // 一つのメンバを走査してmemberの連結リストに追加する
+                Member *mem = calloc(1, sizeof(Member));
 
-    // 配列型だった場合
-    Type *last_t = calloc(1, sizeof(Type));
-    last_t->kind = ty_regi->type->kind;
-    last_t->size = ty_regi->type->size;
-    cur->to_ptr = last_t;
+                // 作った型 or Base型の場合
+                Token *type_tok = token;
+                token = token->next;
 
-    if (consume("[")){
-        Type *arr = calloc(1, sizeof(Type));
-        int index = expect_number();
+                TypeRegistry *ty_regi = find_type_registry(type_tok);
+                TagEntry *tg_en = find_tag_entry(type_tok);
 
-        arr->array_size = index;
-        arr->size = index * ty_regi->type->size;
-        arr->kind = TY_ARRAY;
-        expect("]");
+                if (type_tok->kind == TK_STRUCT){
+                    // 再帰的に関数を呼び出す。
+                    // TODO: struct_decl() に切り出した後に対応
+                }
 
-        arr->to_ptr = last_t;
-        head.to_ptr = arr;
-    }
+                if(ty_regi){
+                    mem->type = ty_regi->type;
+                } else if (tg_en){
+                    mem->type = tg_en->type;
+                } else {
+                    error("そんな型は存在しません。");
+                }
 
-    
-    // 関数の場合
-    if (consume("(")){
-        // トークン、Type
-        return funcdef(token_ident, head.to_ptr);
-    // グローバル変数の場合
-    } else {
-        // トークン, Type
-        return globl_var(type_token, token_ident, head.to_ptr);
+                // メンバ名を読んで
+                Token *mem_ident = consume_ident();
+                mem->name = mem_ident->str;
+                mem->name_len = mem_ident->len;
+
+                cur_member->next = mem;
+                cur_member = mem;
+                expect(";");
+            }
+            type->member = head.next;
+        }
+
+        // memberを作ってから、offsetを計算する。
+        compute_member_offset(type);
+
+        tag->tag_name = token_ident->str;
+        tag->name_len = token_ident->len;
+        tag->next = tag_entry;
+        tag_entry = tag;
+
+        type->kind = TY_STRUCT;
+        type->tag = tag;
+        tag->type = type;
+
+        expect(";");
+        return NULL;
+
+    // int, charのグローバル変数定義、関数の定義
+    } else if (type_token) {
+        token = token->next;
+        // *の数だけTypeの連結リストを作る
+        Type head;
+        head.to_ptr = NULL;
+        Type *cur = &head;
+
+        while (consume("*")){
+            Type *t = calloc(1, sizeof(Type));
+            t->kind = TY_PTR;
+            t->size = PTR_SIZE;
+            cur->to_ptr = t;
+            cur = cur->to_ptr;
+        }
+
+        // 新しく作った型でも認識して続ける。
+        TypeRegistry *ty_regi = find_type_registry(type_token);
+
+        if (!ty_regi){
+            error("型がありません。");
+        }
+
+        // identityトークンをを取得する
+        Token *token_ident = consume_ident();
+
+        // 配列型だった場合
+        Type *last_t = calloc(1, sizeof(Type));
+        last_t->kind = ty_regi->type->kind;
+        last_t->size = ty_regi->type->size;
+        cur->to_ptr = last_t;
+
+        if (consume("[")){
+            Type *arr = calloc(1, sizeof(Type));
+            int index = expect_number();
+
+            arr->array_size = index;
+            arr->size = index * ty_regi->type->size;
+            arr->kind = TY_ARRAY;
+            expect("]");
+
+            arr->to_ptr = last_t;
+            head.to_ptr = arr;
+        }
+
+
+        // 関数の場合
+        if (consume("(")){
+            // トークン、Type
+            return funcdef(token_ident, head.to_ptr);
+            // グローバル変数の場合
+        } else {
+            // トークン, Type
+            return globl_var(type_token, token_ident, head.to_ptr);
+        }
     }
 }
 
@@ -674,7 +776,7 @@ int expect_number() {
 
 // 現在のトークンが型キーワードかどうか（トークンは消費しない）
 Token *type_keyword(){
-    if (token->kind == TK_INT_TYPE || token->kind == TK_CHAR_TYPE ){
+    if (token->kind == TK_INT_TYPE || token->kind == TK_CHAR_TYPE || token->kind == TK_STRUCT ){
         return token;
     } else {
         return NULL;
@@ -824,6 +926,14 @@ Token *consume_ident(){
 TypeRegistry *find_type_registry(Token *tk){
     for(TypeRegistry *cur = type_registry; cur; cur = cur->next){
         if (memcmp(tk->str, cur->name, tk->len) == 0)
+            return cur;
+    }
+    return NULL;
+}
+
+TagEntry *find_tag_entry(Token *tk){
+    for (TagEntry *cur = tag_entry; cur; cur = cur->next){
+        if (tk->len == cur->name_len && memcmp(tk->str, cur->tag_name, tk->len) == 0)
             return cur;
     }
     return NULL;

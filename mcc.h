@@ -21,6 +21,7 @@ typedef enum {
 	TK_NUM,       // 整数トークン
         TK_INT_TYPE,  // int型
         TK_CHAR_TYPE, // char型
+	TK_STRUCT,    // struct型
         TK_CHAR_CONST,// 文字定数
 	TK_STRING,    // 文字列
 	TK_SIZEOF,    // sizeof演算子
@@ -52,16 +53,41 @@ typedef enum {
 	TY_CHAR,
 	TY_PTR,
 	TY_ARRAY,
+	TY_STRUCT,
 } TypeKind;
 
 typedef struct Type Type;
+typedef struct Member Member;
+typedef struct TagEntry TagEntry;
 
 struct Type {
 	TypeKind kind;
 	Type *to_ptr;
 	int size;
 	int array_size;
+
+	TagEntry *tag;
+	Member *member;
+	int align;
 };
+
+struct Member {
+	char *name;
+	int name_len;
+	int offset;
+	Type *type;
+
+	Member *next;
+};
+
+
+struct TagEntry {
+	char *tag_name;
+	int name_len;
+	Type *type;
+	TagEntry *next;
+};
+
 
 // パーサーで使うような型情報配列。
 typedef struct TypeRegistry TypeRegistry;
@@ -213,6 +239,8 @@ struct GVar {
 extern Token *token;
 extern Node *code[100];
 extern LVar *locals;
+extern TagEntry *tag_entry;
+
 extern ScopeEntry *scope_entry;
 extern GVar *globls;
 extern TypeSpecifier type_specifiers[2];

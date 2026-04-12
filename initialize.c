@@ -14,6 +14,7 @@ void initialize_type_registry(){
     Type *type = calloc(1, sizeof(Type));
     type->kind = TY_INT;
     type->size = 4;
+    type->align = 4;
     cur_type_regi->type = type;
     type_registry =  cur_type_regi;
 
@@ -24,6 +25,7 @@ void initialize_type_registry(){
     type = calloc(1, sizeof(Type));
     type->kind = TY_CHAR;
     type->size = 1;
+    type->align = 1;
     cur_type_regi->type = type;
     type_registry->next = cur_type_regi;
 }

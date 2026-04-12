@@ -23,6 +23,7 @@ void initialize_type_registry(void);
 Token *token;
 Node *code[100];
 LVar *locals;
+TagEntry *tag_entry;
 ScopeEntry *scope_entry;
 GVar *globls;
 FuncEntry *func_entry;
@@ -37,6 +38,7 @@ int main(int argc, char *argv[]){
     globls = NULL;
     func_entry = NULL;
     str_literals = NULL;
+    tag_entry = NULL;
 
     if (argc != 2){
             error("引数の個数が正しくありません。");

@@ -41,6 +41,10 @@ bool is_sizeof(char *p){
     return !memcmp(p, "sizeof", 6) && !is_alphabet(*(p+6));
 }
 
+bool is_struct(char *p){
+    return !memcmp(p, "struct", 6) && isspace(*(p + 6));
+}
+
 int is_char_const(char *p){
     if (*p == '\''){
         int start = (*(p+1) == '\\') ? 3 : 2;  // ← バックスラッシュなら3から
@@ -187,6 +191,12 @@ Token *tokenize(char *p){
 
         if (is_sizeof(p)){
             cur = new_token(TK_SIZEOF, cur, p, 6);
+            p += 6;
+            continue;
+        }
+
+        if (is_struct(p)){
+            cur = new_token(TK_STRUCT, cur, p, 6);
             p += 6;
             continue;
         }
