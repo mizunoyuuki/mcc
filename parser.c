@@ -923,6 +923,10 @@ Node *parse_declaration(){
 }
 
 Node *parse_struct_declaration(){
+    // 
+    Type *head_type = calloc(1, sizeof(Type));
+    Type *cur_type  = head_type;
+
     if (token->kind == TK_STRUCT){
         token = token->next;
 
@@ -930,17 +934,31 @@ Node *parse_struct_declaration(){
         TagEntry *te = find_tag_entry(token);
         token = token->next;
 
+        while (consume("*")){
+            cur_type->kind = TY_PTR;
+            cur_type->size = PTR_SIZE;
+            cur_type->to_ptr = calloc(1, sizeof(Type));
+            cur_type = cur_type->to_ptr;
+        }
+        if (head_type->kind == TY_PTR){
+            // ポインタ: チェーンの末端に構造体型を繋ぐ
+            cur_type->to_ptr = te->type;
+        } else {
+            // 非ポインタ: 構造体型をそのまま使う
+            head_type = te->type;
+        }
+
         // 変数名の読み込み
         Token *tok = consume_ident();
 
         Node *node = calloc(1, sizeof(Node));
-        node->type = te->type;
+        node->type = head_type;
         node->kind = ND_LVAR;
-        node->offset = locals ? locals->offset + te->type->size : te->type->size;
+        node->offset = locals ? locals->offset + head_type->size : head_type->size;
 
         LVar *lvar = calloc(1, sizeof(LVar));
 
-        lvar->type = te->type;
+        lvar->type = head_type;
         lvar->name = tok->str;
         lvar->len = tok->len;
         lvar->offset = node->offset;
