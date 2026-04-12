@@ -56,6 +56,8 @@ Node *primary();
 Node *unary();
 Node *parse_globl_declaration(Token*, Token*, Type*);
 Node *parse_declaration(void);
+Node *parse_struct_declaration(void);
+
 Token *type_keyword();
 bool consume(char*);
 void expect(char*);
@@ -131,8 +133,8 @@ Node *top(){
 
     Token *type_token = type_keyword();
 
-    // 構造体タグの定義, structが書いてあった場合
-    if (type_token && type_token->kind == TK_STRUCT){
+    // 構造体タグの定義, structが書いてあり、構造体タグ名の定義の時(struct Tag { の{があった時)
+    if (type_token && type_token->kind == TK_STRUCT && (memcmp(token->next->next->str, "{", 1) == 0) ){
         token = token->next;
 
         Token *token_ident = consume_ident();
@@ -334,7 +336,11 @@ Node *stmt(){
 	// 変数宣言: type ident ("=" expr)? ";"
     // ポインタ変数としての定義もできるように
 	if (type_keyword()){
-		node = parse_declaration();
+        if (token->kind != TK_STRUCT){
+            node = parse_declaration();
+        } else {
+            node = parse_struct_declaration();
+        }
 		expect(";");
 		return node;
 	}
@@ -910,6 +916,36 @@ Node *parse_declaration(){
     }
     node->type = head_type;
 	return node;
+}
+
+Node *parse_struct_declaration(){
+    if (token->kind == TK_STRUCT){
+        token = token->next;
+
+        // Tag名の読み込み
+        TagEntry *te = find_tag_entry(token);
+        token = token->next;
+
+        // 変数名の読み込み
+        Token *tok = consume_ident();
+
+        Node *node = calloc(1, sizeof(Node));
+        node->type = te->type;
+        node->kind = ND_LVAR;
+        node->offset = locals ? locals->offset + te->type->size : te->type->size;
+
+        LVar *lvar = calloc(1, sizeof(LVar));
+
+        lvar->type = te->type;
+        lvar->name = tok->str;
+        lvar->len = tok->len;
+        lvar->offset = node->offset;
+
+        lvar->next = locals;
+        locals = lvar;
+
+        return node;
+    }
 }
 
 Token *consume_ident(){

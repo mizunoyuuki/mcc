@@ -14,7 +14,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 MCC="${MCC:-$PROJECT_DIR/mcc}"
-TEST_FUNC_C="${TEST_FUNC_C:-$PROJECT_DIR/test_func.c}"
+TEST_FUNC_C="${TEST_FUNC_C:-$PROJECT_DIR/tests/test_func.c}"
 INPUT_MODE="${MCC_INPUT_MODE:-argv}"  # argv | file
 
 TMP_S="$(mktemp --suffix=.s)"

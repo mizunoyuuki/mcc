@@ -67,7 +67,9 @@ void gen (Node *node){
             }
 
             // raxの先で変数が保存していたデータがchar 1バイト int 4バイトとかでメモリから読み取る命令が変化する
-            if (node->type->size == 8) {
+            if(node->type->kind == TY_STRUCT){
+                // 
+            }else if (node->type->size == 8) {
                 printf("    mov rax, [rax]\n");
             } else if (node->type->size == 4) {
                 printf("    movsxd rax, dword ptr [rax]\n");
