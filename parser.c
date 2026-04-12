@@ -418,7 +418,11 @@ Node *stmt(){
 		enter_scope();
 		if (!consume(";")){
 			if (type_keyword()){
-				node->finit = parse_declaration();
+                if (token->kind == TK_STRUCT){
+                    node->finit = parse_struct_declaration();
+                } else {
+                    node->finit = parse_declaration();
+                }
 			} else {
 				node->finit = expr();
 			}
