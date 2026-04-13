@@ -58,6 +58,8 @@ Node *parse_globl_declaration(Token*, Token*, Type*);
 Node *parse_declaration(void);
 Node *parse_struct_declaration(void);
 
+Node *pile_member(Node*);
+
 Token *type_keyword();
 bool consume(char*);
 void expect(char*);
@@ -103,28 +105,7 @@ void program(){
 // params        = ident ( "," ident )*
 //
 
-// structのmemberオフセットの計算関数
-int align_to(int offset, int align){
-    return (offset + align -1) & ~(align - 1);
-}
 
-void compute_member_offset(Type *type){
-    int offset = 0;
-    int max_align = 1;
-
-    for (Member *m = type->member; m; m = m->next){
-        offset = align_to(offset, m->type->align);
-        m->offset = offset;
-        offset += m->type->size;
-
-        if (m->type->align > max_align)
-            max_align = m->type->align;
-    }
-
-    type->size = align_to(offset, max_align);
-    type->align = max_align;
-    return;
-}
 
 // topレベルでのparser関数
 Node *top(){
@@ -647,6 +628,23 @@ Node *primary(){
                 expect("]");
                 return new_node(ND_DEREF, new_node(ND_ADD, node, index), NULL);
             }
+            //name_struct->member_struct->member_struct->member_struct
+            //みたいな構造体の連結もコンパイルできる必要がある。
+            // 単なる左結合
+            node->kind = ND_LVAR;
+            node->offset = lvar->offset;
+            node->type   = lvar->type;
+            for(;;){
+                if (consume("->")){
+                    Node *n = new_node(ND_DEREF, node, NULL);
+                    n->type = node->type->to_ptr;
+                    node = pile_member(n);
+                } else if (consume(".")) {
+                    node = pile_member(node);
+                } else {
+                    break;
+                }
+            }
         } else if (gvar){
             node->kind = ND_GVAR;
             node->gvar_name = gvar->name;
@@ -694,6 +692,23 @@ LVar *find_double_define(Token *tok){
             return var;
     }
     return NULL;
+}
+
+Node *pile_member(Node *node){
+    Token *tok = consume_ident();
+    Member *mem;
+    for (mem = node->type->member; mem; mem = mem->next){
+        if (mem->name_len == tok->len && !memcmp(mem->name, tok->str, tok->len))
+            break;
+    }
+
+    Node *node_member = calloc(1, sizeof(Node));
+    node_member->kind = ND_MEMBER;
+    node_member->lhs = node;
+    node_member->type = mem->type; // ノードの型 => memberの型
+    node_member->member = mem;
+
+    return node_member;
 }
 
 // 新しいスコープに入る: 現在のlocals先頭をScopeEntryに保存してpushする
@@ -922,6 +937,7 @@ Node *parse_declaration(){
 	return node;
 }
 
+
 Node *parse_struct_declaration(){
     // 
     Type *head_type = calloc(1, sizeof(Type));
@@ -941,8 +957,8 @@ Node *parse_struct_declaration(){
             cur_type = cur_type->to_ptr;
         }
         if (head_type->kind == TY_PTR){
-            // ポインタ: チェーンの末端に構造体型を繋ぐ
-            cur_type->to_ptr = te->type;
+            // ポインタ: チェーンの末端に構造体型を直接設定
+            *cur_type = *(te->type);
         } else {
             // 非ポインタ: 構造体型をそのまま使う
             head_type = te->type;
@@ -968,6 +984,30 @@ Node *parse_struct_declaration(){
 
         return node;
     }
+}
+
+
+// structのmemberオフセットの計算関数
+int align_to(int offset, int align){
+    return (offset + align -1) & ~(align - 1);
+}
+
+void compute_member_offset(Type *type){
+    int offset = 0;
+    int max_align = 1;
+
+    for (Member *m = type->member; m; m = m->next){
+        offset = align_to(offset, m->type->align);
+        m->offset = offset;
+        offset += m->type->size;
+
+        if (m->type->align > max_align)
+            max_align = m->type->align;
+    }
+
+    type->size = align_to(offset, max_align);
+    type->align = max_align;
+    return;
 }
 
 Token *consume_ident(){

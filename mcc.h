@@ -122,6 +122,7 @@ typedef enum {
 	ND_NOT,      // !
 	ND_ASSIGN,   // =(代入)
 	ND_LVAR,     // ローカル変
+	ND_MEMBER,   // 構造体の. ->のメンバ参照
         ND_RETURN,   // return
         ND_IF,       // if
 	ND_WHILE,    // while
@@ -199,6 +200,9 @@ struct Node {
 	// この変数が配列型かどうか
 	bool is_array;
 
+	// 構造体変数のメンバ参照
+	bool is_struct;
+	Member *member;
 
 	// 文字列リレラル
 	StrLiteral *str_lite;

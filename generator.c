@@ -6,6 +6,16 @@ void gen_lval(Node *node){
         gen(node->lhs);
         return;
     }
+
+    if (node->kind == ND_MEMBER){
+        gen_lval(node->lhs);
+        printf("    pop rax\n");
+        printf("    add rax, %d\n", node->member->offset);
+        printf("    push rax\n");
+
+        return;
+    }
+
 	if (node->kind != ND_LVAR && node->kind != ND_GVAR)
 		error ("代入の左辺値が変数, デリファレンスポインタではありません");
 
@@ -78,6 +88,20 @@ void gen (Node *node){
             }
 			printf("    push rax\n");
 			return;
+
+        case ND_MEMBER:
+            gen_lval(node);
+            printf("    pop rax\n");
+
+            if (node->type->size == 8){
+                printf("    mov rax, [rax]\n");
+            } else if (node->type->size == 4){
+                printf("    movsxd rax, dword ptr [rax]\n");
+            } else if (node->type->size == 1) {
+                printf("    movsx rax, byte ptr [rax]\n");
+            }
+            printf("    push rax\n");
+            return;
 
         case ND_NOT:
             gen(node->lhs);
