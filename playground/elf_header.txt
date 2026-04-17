@@ -1,0 +1,59 @@
+	#define EI_NIDENT 16
+
+        typedef struct {
+               unsigned char e_ident[EI_NIDENT];
+               uint16_t      e_type;
+               uint16_t      e_machine;
+               uint32_t      e_version;
+               ElfN_Addr     e_entry;
+               ElfN_Off      e_phoff;
+               ElfN_Off      e_shoff;
+               uint32_t      e_flags;
+               uint16_t      e_ehsize;
+               uint16_t      e_phentsize;
+               uint16_t      e_phnum;
+               uint16_t      e_shentsize;
+               uint16_t      e_shnum;
+               uint16_t      e_shstrndx;
+           } ElfN_Ehdr;
+
+e_ident[EI_NIDENT];
+
+最初の4バイトは
+
+.elfの7f 45 4c 46
+
+残りの8バイトは、そのバイナリが「どんな環境で動くのか」
+
+5バイト目: クラス(EL_CLASS)
+そのプログラムが32bit用か64ビット用かを識別する。
+1: 32bit
+2: 64bit
+
+6バイト目: データエンディアン(EI_DATA)
+データの「並び順」を決める。
+1: リトルエンディアン(Intel AMD のCPUはこれ)
+2: ビックエンディアン
+
+リトルエンディアンは「小さい桁から順にメモリにおく」方式
+
+7バイト目: バージョン(EI_VERAION)
+ELF形式自体のバージョン。歴史的な経緯で、現在は常に1と決まってる。
+
+8-9バイト目
+どのOS向けに作られたか。
+
+0x00 SystemV(Linuxもこれを使うことが多い)
+0x03 Linux
+
+残りの7バイト
+パディング。「残りは詰め物」
+基本的には0x00で埋められている
+将来,ELF形式に新しい機能を追加したくなたときのための「予備席」
+また、データの区切りを16バイトという「キリの良い数字」に揃えることで、コンピュータが高速に処理できるようにするという意図もある。
+
+
+「EIは、ELF Identification」
+
+ELFファイルを「識別」するための情報が詰まってる場所 EI_NIDENT EI(ELF Identification(識別情報))のN(Number / 個数) 
+
