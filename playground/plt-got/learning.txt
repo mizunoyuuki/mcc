@@ -1,0 +1,53 @@
+0000000000001050 <puts@plt>:
+    1050:	f3 0f 1e fa          	endbr64
+    1054:	f2 ff 25 75 2f 00 00 	bnd jmp *0x2f75(%rip)        # 3fd0 <puts@GLIBC_2.2.5>
+    105b:	0f 1f 44 00 00       	nopl   0x0(%rax,%rax,1)
+
+0000000000001149 <main>:
+    1149:	f3 0f 1e fa          	endbr64
+    114d:	55                   	push   %rbp
+    114e:	48 89 e5             	mov    %rsp,%rbp
+    1151:	48 8d 05 ac 0e 00 00 	lea    0xeac(%rip),%rax        # 2004 <_IO_stdin_used+0x4>
+    1158:	48 89 c7             	mov    %rax,%rdi
+    115b:	e8 f0 fe ff ff       	call   1050 <puts@plt>
+    1160:	b8 00 00 00 00       	mov    $0x0,%eax
+    1165:	5d                   	pop    %rbp
+    1166:	c3                   	ret
+
+    call命令で
+    call 1050 <puts@plt>
+
+    このように書くが、1050はバイナリの一部になるが、<puts@plt>はバイナリには含まれない。
+
+    1050は「機械語の一部」 ただ、相対距離。バイナリには、実際には、1050と書いてあるのではなく、「今の場所から-110バイト戻ったところにジャンプせよ」と書いてある。
+    CPUはこの数字を読み取って、1050という住所を計算して飛ぶ。
+
+
+f3 0f 1e faは、endbr64
+
+ここは正式なジャンプポイントであることのスタンプ。
+近代的なCPUは、CET(Controll-flow Enforcement Technology)というセキュリティ機能のための命令
+
+無理やりジャンプさせようとしてもCPUが例外をはく
+
+f2 ff 25 75 2f 00 00 bnd jmp *0x2f75(%rip)  # 3fd0 <puts@GLIBC_2.2.5>
+
+GOTをみて、本当の住所へとべ。という命令
+
+jmp *0x2f75(%rip)
+
+これは間接ジャンプ、
+ここから0x2f75バイト進んだ場所にあるメモリに保存されているデータをアドレスとして飛べ
+
+親切なデバッガが, それは3fd0番地だよ。と教えてくれている。
+
+ちなみにobjdump -dしてもGOTは見れない。なぜならGOTはデータだから。
+objdump -dは、命令しか見れない。
+
+ちなみに、最近のコンピュータでは、動的リンカがプログラムの実行途中で、GOTにアドレスがないので、書き込んで解決する。とかはしない。
+悪意あるプログラムが、GOTを書き換えれば、printfで変な場所に飛べてしまうから。
+
+GOT: (Global Offset Table)
+PLT: (Procedure Linkage Table)
+
+CPUはデータを直接実行することはできないし、命令を書き換えることもできない
