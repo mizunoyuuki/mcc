@@ -193,6 +193,14 @@ Node *top(){
         Type head;
         head.to_ptr = NULL;
         Type *cur = &head;
+        
+        // 新しく作った型でも認識して続ける。
+        TypeRegistry *ty_regi = find_type_registry(type_token);
+
+        if (ty_regi && ty_regi->type->kind == TY_VOID && !(token->len == 1 && memcmp(token->str, "*", 1) == 0)){
+            error("void型は不完全型です。");
+        }
+
 
         while (consume("*")){
             Type *t = calloc(1, sizeof(Type));
@@ -202,10 +210,7 @@ Node *top(){
             cur = cur->to_ptr;
         }
 
-        // 新しく作った型でも認識して続ける。
-        TypeRegistry *ty_regi = find_type_registry(type_token);
-
-        if (!ty_regi){
+                if (!ty_regi){
             error("型がありません。");
         }
 
@@ -801,7 +806,7 @@ int expect_number() {
 
 // 現在のトークンが型キーワードかどうか（トークンは消費しない）
 Token *type_keyword(){
-    if (token->kind == TK_INT_TYPE || token->kind == TK_CHAR_TYPE || token->kind == TK_STRUCT ){
+    if (token->kind == TK_INT_TYPE || token->kind == TK_CHAR_TYPE || token->kind == TK_STRUCT || token->kind == TK_VOID ){
         return token;
     } else {
         return NULL;
@@ -846,6 +851,13 @@ Node *parse_globl_declaration(Token *type_tok, Token *ident_tok, Type *type){
 
 Node *parse_declaration(){
     TypeKind ident_type = token->kind == TK_INT_TYPE ? TY_INT : TY_CHAR;
+    if (token->kind == TK_VOID){
+        ident_type = TY_VOID;
+        if (memcmp(token->next->str, "*", 1)){
+            error("voidは不完全型です");
+        }
+    }
+
 	token = token->next; // 型キーワードを消費
 
     // type指定子後に*があったらwhileで回してType型の連結リストを作っておく
@@ -902,6 +914,8 @@ Node *parse_declaration(){
         if (ident_type == TY_INT){
             cur_type->size = 4;
         } else if (ident_type == TY_CHAR){
+            cur_type->size = 1;
+        } else if (ident_type == TY_VOID){
             cur_type->size = 1;
         }
     }

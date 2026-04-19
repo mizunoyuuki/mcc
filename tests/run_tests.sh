@@ -70,6 +70,25 @@ for f in "${files[@]}"; do
 
     : > "$TMP_ERR"
 
+    # EXPECT: ERROR — コンパイルエラーを期待するテスト
+    if [ "$expected" = "ERROR" ]; then
+        if [ "$INPUT_MODE" = "file" ]; then
+            "$MCC" "$f" > "$TMP_S" 2>"$TMP_ERR"
+        else
+            src="$(grep -v -E '^// (EXPECT|SECTION):' "$f")"
+            "$MCC" "$src" > "$TMP_S" 2>"$TMP_ERR"
+        fi
+        if [ $? -ne 0 ]; then
+            passed=$((passed + 1))
+            echo "[PASS] $name ($section) => compile error (expected)"
+        else
+            echo "[FAIL] $name ($section): エラーが発生するはずだったがコンパイル成功"
+            show_failure "$f" "$TMP_ERR"
+            failed_files+=("$name")
+        fi
+        continue
+    fi
+
     # mcc にソースを渡してアセンブリを生成
     if [ "$INPUT_MODE" = "file" ]; then
         if ! "$MCC" "$f" > "$TMP_S" 2>"$TMP_ERR"; then

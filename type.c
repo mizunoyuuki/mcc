@@ -221,6 +221,10 @@ void add_type(Node *node){
             return;
             break;
         case ND_DEREF:
+            if (node->lhs->type->to_ptr->kind == TY_VOID){
+                error("voidは不完全型です。");
+            }
+
             node->type = node->lhs->type->to_ptr;
             break;
         case ND_NUM:

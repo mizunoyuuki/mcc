@@ -28,4 +28,17 @@ void initialize_type_registry(){
     type->align = 1;
     cur_type_regi->type = type;
     type_registry->next = cur_type_regi;
+
+    // void型
+    cur_type_regi = calloc(1, sizeof(TypeRegistry));
+    cur_type_regi->name = "void";
+    cur_type_regi->name_len = 4;
+    type = calloc(1, sizeof(Type));
+    type->kind = TY_VOID;
+    type->size = 1;
+    type->align = 1;
+    cur_type_regi->type = type;
+    type_registry->next->next = cur_type_regi;
+
+    return;
 }

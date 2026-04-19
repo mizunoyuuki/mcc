@@ -14,15 +14,16 @@ typedef enum {
 	TK_RESERVED,  // 記号
 	TK_IDENT,     // 識別子
 	TK_RETURN,    // returnキーワード
-        TK_IF,        // if
+  TK_IF,        // if
 	TK_ELSE,      // else
 	TK_WHILE,     // while
-        TK_FOR,       // for
+  TK_FOR,       // for
 	TK_NUM,       // 整数トークン
-        TK_INT_TYPE,  // int型
-        TK_CHAR_TYPE, // char型
+  TK_INT_TYPE,  // int型
+  TK_CHAR_TYPE, // char型
 	TK_STRUCT,    // struct型
-        TK_CHAR_CONST,// 文字定数
+  TK_VOID,      // void型
+  TK_CHAR_CONST,// 文字定数
 	TK_STRING,    // 文字列
 	TK_SIZEOF,    // sizeof演算子
 	TK_EOF        // 入力の終わりを表すトークン
@@ -52,6 +53,7 @@ typedef enum {
 	TY_INT,
 	TY_CHAR,
 	TY_PTR,
+  TY_VOID,
 	TY_ARRAY,
 	TY_STRUCT,
 } TypeKind;
@@ -123,8 +125,8 @@ typedef enum {
 	ND_ASSIGN,   // =(代入)
 	ND_LVAR,     // ローカル変
 	ND_MEMBER,   // 構造体の. ->のメンバ参照
-        ND_RETURN,   // return
-        ND_IF,       // if
+  ND_RETURN,   // return
+  ND_IF,       // if
 	ND_WHILE,    // while
 	ND_FOR,      // for
 	ND_BLOCK,    // {} ブロック
@@ -247,7 +249,7 @@ extern TagEntry *tag_entry;
 
 extern ScopeEntry *scope_entry;
 extern GVar *globls;
-extern TypeSpecifier type_specifiers[2];
+extern TypeSpecifier type_specifiers[3];
 extern TypeRegistry *type_registry;
 extern FuncEntry *func_entry;
 extern StrLiteral *str_literals;
