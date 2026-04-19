@@ -18,6 +18,7 @@ typedef enum {
 	TK_ELSE,      // else
 	TK_WHILE,     // while
   TK_FOR,       // for
+    TK_BREAK,     // break
 	TK_NUM,       // 整数トークン
   TK_INT_TYPE,  // int型
   TK_CHAR_TYPE, // char型
@@ -130,6 +131,7 @@ typedef enum {
 	ND_WHILE,    // while
 	ND_FOR,      // for
 	ND_BLOCK,    // {} ブロック
+    ND_BREAK,    // break
 	ND_FUNCALL,  // 関数呼び出し
 	ND_FUNCDEF,  // 関数の定義
 	ND_ADDR,     // アドレス参照
@@ -144,6 +146,7 @@ typedef enum {
 typedef struct Node Node;
 typedef struct LVar LVar;
 typedef struct StrLiteral StrLiteral;
+typedef struct LoopBlock LoopBlock;
 
 struct StrLiteral{
 	int simbol_index;
@@ -211,6 +214,9 @@ struct Node {
 	char *str;
 	int str_size;
 
+    // breakで利用する現在のloopブロックの識別子
+    LoopBlock *lb;
+
 	int val;       // kindがND_NUMの場合のみ扱う
         int offset;    // kindがND_LVARの場合のみ使う
 };
@@ -231,6 +237,12 @@ struct ScopeEntry {
 	ScopeEntry *next;
 };
 
+
+struct LoopBlock {
+    int number;
+    LoopBlock *next;
+};
+
 typedef struct GVar GVar;
 
 struct GVar {
@@ -248,6 +260,7 @@ extern LVar *locals;
 extern TagEntry *tag_entry;
 
 extern ScopeEntry *scope_entry;
+extern LoopBlock *loop_block;
 extern GVar *globls;
 extern TypeSpecifier type_specifiers[3];
 extern TypeRegistry *type_registry;
