@@ -1,0 +1,63 @@
+リンカの仕組み:
+
+source.c
+   |       cc コンパイル + アセンブル
+
+source.o   <-  リロケータブルオブジェクトファイル
+   |
+   |       <- ld(linker)
+   |
+a,out     // executable  実行可能ELFファイル
+
+
+オブジェクトファイルとは、
+
+.oはELF形式だが、実行不可能。 アドレスが未確定な「穴あき」状態
+
+
+hello.oの中身
+
+ELFヘッダ  type = ET_REL(再配置可能)
+.text
+.data
+.bss
+.symtab
+.rela.text
+.strtab
+
+
+.symtab
+この.oファイルに何が定義されていて、何が外部参照か。のリスト
+
+int x = 10;         // 定義 blobl
+extern int y;       // 参照 (UNDEFINED)
+void foo() { ... }  // 定義 globl
+static void bar()   // 定義 外からは見えない
+
+.symtabの内容:
+
+Name      Value    Size   Type      Bind     Section
+x         0x0      4      OBJECT    GLOBAL   .data
+y         0x0      0      OBJECT    GLOBAL   UNDEF  <- 未解決
+foo       0x0      32     FUNC      GLOBAL   .text
+bar       0x20     16     FUNC      LOCAL    .text
+
+
+valueが全て0付近 => まだアドレスが決まっていない
+
+
+3. 再配置テーブル(.rela.text)
+
+「.textのこのオフセットにある命令は、リンク時にこのシンボルのアドレスで書き換えて欲しい」
+
+extern void foo();
+
+void main() {
+    foo();   <- このfooのアドレスが不明　
+}
+
+重複定義エラーもここで検出する。
+
+ld: error: duplicate symbol: foo
+>>> defined in a.o
+>>> defined in b.o
