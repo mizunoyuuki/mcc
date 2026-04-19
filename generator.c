@@ -172,6 +172,7 @@ void gen (Node *node){
 			printf("    pop rax\n");
 			printf("    jmp .Lbegin%d\n", label_while);
 			printf(".Lend%d:\n", label_while);
+            printf(".Lloopblock%d:\n", node->lb->number);
 			printf("    push 0\n");
 			return;
 
@@ -200,9 +201,16 @@ void gen (Node *node){
 
 			printf("    jmp .Lbegin%d\n", label_for);
 			printf(".Lend%d:\n", label_for);
+            printf(".Lloopblock%d:\n", node->lb->number);
 			printf("    push 0\n");
 
 			return;
+
+        case ND_BREAK:
+            printf("    pop rax\n");
+            printf("    jmp .Lloopblock%d\n", node->lb->number);
+            printf("    push 0\n");
+            return;
 
 		case ND_BLOCK:
 			for (Node *n = node->body; n; n = n->next){

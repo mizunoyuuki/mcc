@@ -45,6 +45,10 @@ bool is_struct(char *p){
     return !memcmp(p, "struct", 6) && isspace(*(p + 6));
 }
 
+bool is_break(char *p){
+    return !memcmp(p, "break", 5) && !is_alphabet(*(p+5));
+}
+
 int is_char_const(char *p){
     if (*p == '\''){
         int start = (*(p+1) == '\\') ? 3 : 2;  // ← バックスラッシュなら3から
@@ -209,6 +213,12 @@ Token *tokenize(char *p){
         if (is_struct(p)){
             cur = new_token(TK_STRUCT, cur, p, 6);
             p += 6;
+            continue;
+        }
+
+        if (is_break(p)){
+            cur = new_token(TK_BREAK, cur, p, 5);
+            p += 5;
             continue;
         }
 

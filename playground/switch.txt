@@ -1,0 +1,56 @@
+## C言語のswitch文
+
+基本構文
+
+switch (expression){
+    case constant-expression-1:
+        statements;
+        break;
+    case constant-expression-2:
+        statements;
+        break;
+    default:
+        statementes;
+        break;
+}
+
+1. 制御式 (controlling expression)
+  switch (expr)
+  - exprは整数型でなければならない(int, char, short, long, enum など)
+  - float, double, struct, pointerは不可
+  - 式は一度だけ評価される
+  - 処理系は、exprをintに**整数昇格**させてから比較する。
+
+2. caseラベル
+  - constant-expressionとあるように、コンパイル時定数でなければならない。
+  - 変数、関数呼び出しは不可
+  - 同じswitch文内での値の重複は不可(コンパイルエラー)
+  - 型は整数定数式
+
+Ok 
+case 1:
+case 'A':
+case 1 + 2:
+
+#define X 10
+case X:
+
+NG
+int n = 1;
+case n;
+case 1.0
+
+3. フォールスルー (fall-through)
+switchの最重要特性。breakがなければ次のcaseへそのまま実行が流れる。
+
+
+コンパイラによる最適化
+
+コンパイラはswitchを状況に応じて二通りに最適化する:
+
+## ジャンプテーブル   caseの値が連続/密集   jmp [table + rax*8]で、O(1)ジャンプ
+
+## 二分探索/連鎖比較  caseが疎・少数        cmp + jeの連鎖
+
+
+4. enumとの組み合わせ

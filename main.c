@@ -25,6 +25,7 @@ Node *code[100];
 LVar *locals;
 TagEntry *tag_entry;
 ScopeEntry *scope_entry;
+LoopBlock *loop_block;
 GVar *globls;
 FuncEntry *func_entry;
 StrLiteral *str_literals;
@@ -40,6 +41,7 @@ int main(int argc, char *argv[]){
     func_entry = NULL;
     str_literals = NULL;
     tag_entry = NULL;
+    loop_block = NULL;
 
     if (argc != 2){
             error("引数の個数が正しくありません。");

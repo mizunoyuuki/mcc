@@ -1,4 +1,6 @@
 #include"mcc.h" 
+static int loop_simbol_number;
+
 Node *new_node(NodeKind kind, Node *lhs, Node *rhs){
 	Node *node = calloc(1, sizeof(Node));
 	node->kind = kind;
@@ -81,9 +83,12 @@ bool consume_else(char *op);
 bool consume_while(char *op);
 bool consume_for(char *op);
 bool consume_sizeof(char *op);
+bool consume_break();
 
 void enter_scope(void);
 void leave_scope(void);
+void enter_loop_block(void);
+void leave_loop_block(void);
 
 void compute_member_offset(Type *);
 int align_to(int, int);
@@ -339,6 +344,14 @@ Node *stmt(){
 		return node;
 	}
 
+    if (consume_break()){
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_BREAK;
+        node->lb = loop_block;
+        expect(";");
+        return node;
+    }
+
 	if (consume_if("if")){
 		enter_scope();
 
@@ -386,22 +399,34 @@ Node *stmt(){
 	}
 
 	if (consume_while("while")){
+        // breakで利用する。今どのループ内にいるかのグローバ
+        
+
+
 		node = calloc(1, sizeof(Node));
 		node->kind = ND_WHILE;
 		expect("(");
 		node->lhs = expr();
 		expect(")");
+
 		enter_scope();
+        enter_loop_block();
+        node->lb = loop_block;
 		node->rhs = stmt();
 		leave_scope();
+        leave_loop_block();
+
 		return node;
 	}
 
 	if (consume_for("for")){
+
 		node = calloc(1, sizeof(Node));
 		node->kind = ND_FOR;
 		expect("(");
+
 		enter_scope();
+        enter_loop_block();
 		if (!consume(";")){
 			if (type_keyword()){
                 if (token->kind == TK_STRUCT){
@@ -424,8 +449,11 @@ Node *stmt(){
 			node->finc = expr();
 			expect(")");
 		}
+        
+        node->lb = loop_block;
 		node->fthen = stmt();
 		leave_scope();
+        leave_loop_block();
 		return node;
 	}
 
@@ -786,6 +814,13 @@ bool consume_sizeof(char *op){
     token = token->next;
     return true;
 }
+
+bool consume_break(){
+    if ( token->kind != TK_BREAK )  
+        return false;
+    token = token->next;
+    return true;
+}
 // 次のトークンが期待している記号の時には、トークンを一つ読み進める。
 // それ以外の場合にはエラーを報告する。
 void expect(char *op){
@@ -1058,6 +1093,21 @@ FuncEntry *find_func(Token *tk){
     }
 
     return NULL;
+}
+
+// 今どのループのblockにいるのかで利用するグローバル連結リスト
+void enter_loop_block(){
+    LoopBlock *cur_lb = calloc(1, sizeof(LoopBlock));
+    cur_lb->number = loop_simbol_number++;
+    LoopBlock *lb = loop_block;
+    loop_block = cur_lb;
+    loop_block->next = lb;
+    return;
+}
+
+void leave_loop_block(){
+    loop_block = loop_block->next;
+    return;
 }
 
 // sizeof演算子でしか使わない。
