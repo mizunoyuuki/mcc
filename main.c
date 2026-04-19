@@ -32,6 +32,7 @@ StrLiteral *str_literals;
 TypeSpecifier type_specifiers[] = {
     {"int",  TK_INT_TYPE,  3},
     {"char", TK_CHAR_TYPE, 4},
+    {"void", TK_VOID, 4}
 };
 
 int main(int argc, char *argv[]){
