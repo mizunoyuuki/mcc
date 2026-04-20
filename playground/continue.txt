@@ -1,0 +1,21 @@
+Cのcontinueの仕様は、
+ほとんどbreakの逆の概念。
+
+for, while. do-whileの先頭に戻る。
+
+しかし、continueで、for文の初期化式をまた実行するのは違うので、
+
+continueが実行されると、
+
+init -> cond -> 本体 -> inc -> cond -> 本体 -> inc -> cond
+
+の、incからスタートする。
+
+init -> cond -> 本体 -> continue -> inc -> cond ->　本体
+
+
+また、switch文は、continueの影響を受けない。スルーする。
+
+その理由は、switch文は、「反復文」ではなく、「選択文」だから。
+
+

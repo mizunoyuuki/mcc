@@ -84,10 +84,11 @@ bool consume_while(char *op);
 bool consume_for(char *op);
 bool consume_sizeof(char *op);
 bool consume_break();
+bool consume_continue();
 
 void enter_scope(void);
 void leave_scope(void);
-void enter_loop_block(void);
+void enter_loop_block(NodeKind);
 void leave_loop_block(void);
 
 void compute_member_offset(Type *);
@@ -352,6 +353,19 @@ Node *stmt(){
         return node;
     }
 
+    if (consume_continue()){
+        node = calloc(1, sizeof(Node));
+        node->kind = ND_CONTINUE;
+        LoopBlock *lb = loop_block;
+        while(lb->node_kind == ND_SWITCH ){
+            lb = lb->next;
+        }
+        node->lb = lb;
+        expect(";");
+
+        return node;
+    }
+
 	if (consume_if("if")){
 		enter_scope();
 
@@ -410,7 +424,7 @@ Node *stmt(){
 		expect(")");
 
 		enter_scope();
-        enter_loop_block();
+        enter_loop_block(ND_WHILE);
         node->lb = loop_block;
 		node->rhs = stmt();
 		leave_scope();
@@ -426,7 +440,7 @@ Node *stmt(){
 		expect("(");
 
 		enter_scope();
-        enter_loop_block();
+        enter_loop_block(ND_FOR);
 		if (!consume(";")){
 			if (type_keyword()){
                 if (token->kind == TK_STRUCT){
@@ -821,6 +835,13 @@ bool consume_break(){
     token = token->next;
     return true;
 }
+
+bool consume_continue(){
+    if (token->kind != TK_CONTINUE)
+        return false;
+    token = token->next;
+    return true;
+}
 // 次のトークンが期待している記号の時には、トークンを一つ読み進める。
 // それ以外の場合にはエラーを報告する。
 void expect(char *op){
@@ -1096,9 +1117,10 @@ FuncEntry *find_func(Token *tk){
 }
 
 // 今どのループのblockにいるのかで利用するグローバル連結リスト
-void enter_loop_block(){
+void enter_loop_block(NodeKind kind){
     LoopBlock *cur_lb = calloc(1, sizeof(LoopBlock));
     cur_lb->number = loop_simbol_number++;
+    cur_lb->node_kind = kind;
     LoopBlock *lb = loop_block;
     loop_block = cur_lb;
     loop_block->next = lb;

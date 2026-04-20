@@ -164,6 +164,7 @@ void gen (Node *node){
 		case ND_WHILE:
 			int label_while = label_count++;
 			printf(".Lbegin%d:\n", label_while);
+            printf(".Lloopblockstart%d:\n", node->lb->number);
 			gen(node->lhs);
 			printf("    pop rax\n");
 			printf("    cmp rax, 0\n");
@@ -172,7 +173,7 @@ void gen (Node *node){
 			printf("    pop rax\n");
 			printf("    jmp .Lbegin%d\n", label_while);
 			printf(".Lend%d:\n", label_while);
-            printf(".Lloopblock%d:\n", node->lb->number);
+            printf(".Lloopblockend%d:\n", node->lb->number);
 			printf("    push 0\n");
 			return;
 
@@ -194,6 +195,7 @@ void gen (Node *node){
 			gen(node->fthen);
 			printf("    pop rax\n");
 
+            printf(".Lloopblockstart%d:\n", node->lb->number);
 			if(node->finc){
 				gen(node->finc);
 				printf("    pop rax\n");
@@ -201,16 +203,21 @@ void gen (Node *node){
 
 			printf("    jmp .Lbegin%d\n", label_for);
 			printf(".Lend%d:\n", label_for);
-            printf(".Lloopblock%d:\n", node->lb->number);
+            printf(".Lloopblockend%d:\n", node->lb->number);
 			printf("    push 0\n");
 
 			return;
 
         case ND_BREAK:
             printf("    pop rax\n");
-            printf("    jmp .Lloopblock%d\n", node->lb->number);
+            printf("    jmp .Lloopblockend%d\n", node->lb->number);
             printf("    push 0\n");
             return;
+
+        case ND_CONTINUE:
+            printf("    pop rax\n");
+            printf("    jmp .Lloopblockstart%d\n", node->lb->number);
+            printf("    push 0\n");
 
 		case ND_BLOCK:
 			for (Node *n = node->body; n; n = n->next){

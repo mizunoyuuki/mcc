@@ -19,6 +19,7 @@ typedef enum {
 	TK_WHILE,     // while
   TK_FOR,       // for
     TK_BREAK,     // break
+    TK_CONTINUE,  // continue
 	TK_NUM,       // 整数トークン
   TK_INT_TYPE,  // int型
   TK_CHAR_TYPE, // char型
@@ -130,8 +131,10 @@ typedef enum {
   ND_IF,       // if
 	ND_WHILE,    // while
 	ND_FOR,      // for
+    ND_SWITCH,   // switch
 	ND_BLOCK,    // {} ブロック
     ND_BREAK,    // break
+    ND_CONTINUE, // continue
 	ND_FUNCALL,  // 関数呼び出し
 	ND_FUNCDEF,  // 関数の定義
 	ND_ADDR,     // アドレス参照
@@ -240,6 +243,7 @@ struct ScopeEntry {
 
 struct LoopBlock {
     int number;
+    NodeKind node_kind;
     LoopBlock *next;
 };
 

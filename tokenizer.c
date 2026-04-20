@@ -49,6 +49,10 @@ bool is_break(char *p){
     return !memcmp(p, "break", 5) && !is_alphabet(*(p+5));
 }
 
+bool is_continue(char *p) {
+    return !memcmp(p, "continue", 8) && !is_alphabet(*(p + 8));
+}
+
 int is_char_const(char *p){
     if (*p == '\''){
         int start = (*(p+1) == '\\') ? 3 : 2;  // ← バックスラッシュなら3から
@@ -219,6 +223,12 @@ Token *tokenize(char *p){
         if (is_break(p)){
             cur = new_token(TK_BREAK, cur, p, 5);
             p += 5;
+            continue;
+        }
+
+        if (is_continue(p)){
+            cur = new_token(TK_CONTINUE, cur, p, 8);
+            p += 8;
             continue;
         }
 
