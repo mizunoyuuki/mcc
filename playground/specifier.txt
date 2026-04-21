@@ -1,0 +1,37 @@
+C言語における「指定子」とは、変数や関数の宣言に付け加えることで、その変数の型以外の属性をコンパイラに伝えるためのキーワードです。
+
+
+C言語の「記憶クラス指定子」は、その識別子(ident: 変数や関数)の「寿命」と「連結(linkage)」そして、「メモリのどこにおかれるか」を決定する。
+
+C言語の文法規則では、宣言において、記憶クラス指定子は最大一つしか書けない。という仕様。
+
+static int x;
+typedef int my_int;
+static typedef int my_ind;  => エラー
+
+また、指定子は「strorage class specifier」だけではない。
+
+型修飾子(Qualifiers)は、最適化やメモリ安全性に関わる。
+
+### 型修飾子(type specifiers)
+void, char, short, int, long, float, double, signed, unsigned, _Bool, _Complex
+
+struct, enum, union
+
+### 型修飾子(Qualifiers)
+型に「付加的な性質」を与える。記憶クラス指定子とは異なり、一つの宣言に複数記述したり、ポインタの各階層に対して定義できたりする。
+
+const 
+volatile
+restrict
+_Atomic
+
+### 関数指定子
+inline
+_Noreturn: この関数は呼び出し元に戻ってこない。exit()や無限ループなど。
+=> コンパイラはこのあとコードが実行されないことを前提に最適化をかける
+
+### アライメント指定子
+メモリレイアウトを強制させる
+
+_Alignas: _Alignas(16) int x;
