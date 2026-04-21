@@ -1,0 +1,5 @@
+到達不能コード
+
+continueやbreakの直後に書いたコードは「到達不能コード」である。GCCやClang はこれを, -Wunreachable-codeオプションで警告する。
+ただし、C規格上は未定義ではなく単なるデットコード。
+コンパイラは、デットコード削除(DCE: Dead Code Elimination)最適化でこれを除去し、コードサイズを削減する。

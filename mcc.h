@@ -28,6 +28,7 @@ typedef enum {
   TK_CHAR_CONST,// 文字定数
 	TK_STRING,    // 文字列
 	TK_SIZEOF,    // sizeof演算子
+    TK_TYPEDEF,   // typedef演算子
 	TK_EOF        // 入力の終わりを表すトークン
 } TokenKind;
 
@@ -140,6 +141,7 @@ typedef enum {
 	ND_ADDR,     // アドレス参照
 	ND_DEREF,    // アドレスデリファレンス
 	ND_SIZEOF,   // sizeof演算子
+    ND_TYPRDEF,  // typedef演算子
 	ND_STRING,   // 文字列リテラル
 	ND_GVAR,     // 外部変数
 	ND_NUM,      // 整数

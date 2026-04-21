@@ -72,6 +72,8 @@ LVar *find_lvar(Token *);
 LVar *find_double_define(Token *tok);
 FuncEntry *find_func(Token *);
 
+bool check_globl_ident(Token *);
+
 TypeRegistry *find_type_registry(Token*);
 TagEntry *find_tag_entry(Token *);
 
@@ -222,6 +224,9 @@ Node *top(){
 
         // identityトークンをを取得する
         Token *token_ident = consume_ident();
+        if (!check_globl_ident(token_ident)){
+            error("typedef, 変数定義が重複しています。");
+        }
 
         // 配列型だった場合
         Type *last_t = calloc(1, sizeof(Type));
@@ -255,6 +260,13 @@ Node *top(){
     }
 }
 
+bool check_globl_ident(Token *tok){
+    GVar *gvar = find_gvar(tok);
+    if (gvar) {
+    }
+    tok->str;
+    return true;
+}
 // int a;
 Node *globl_var(Token *type_token, Token *indent_token, Type *type){
     Node *gval = parse_globl_declaration(type_token, indent_token, type);
