@@ -53,6 +53,10 @@ bool is_continue(char *p) {
     return !memcmp(p, "continue", 8) && !is_alphabet(*(p + 8));
 }
 
+bool is_typedef(char *p) {
+    return !memcmp(p, "typedef", 7) && !is_alphabet(*(p + 7));
+}
+
 int is_char_const(char *p){
     if (*p == '\''){
         int start = (*(p+1) == '\\') ? 3 : 2;  // ← バックスラッシュなら3から
@@ -232,6 +236,12 @@ Token *tokenize(char *p){
             continue;
         }
 
+        if (is_typedef(p)){
+            cur = new_token(TK_TYPEDEF, cur, p, 7);
+            p += 7;
+            continue;
+        }
+
 		if (*p == '<' || *p == '>' || *p == '='){
 			cur = new_token(TK_RESERVED, cur, p++, 1);
 			continue;
@@ -276,7 +286,7 @@ Token *tokenize(char *p){
 			char *q = p;
 			int len = 0;
 
-	                while (is_alphabet(*p)){
+	                while (is_alphabet(*p) || isdigit(*p)){
 				p++;
 				len += 1;
 			}
