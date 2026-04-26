@@ -286,7 +286,7 @@ Token *tokenize(char *p){
 			char *q = p;
 			int len = 0;
 
-	                while (is_alphabet(*p)){
+	                while (is_alphabet(*p) || isdigit(*p)){
 				p++;
 				len += 1;
 			}

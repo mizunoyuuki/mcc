@@ -87,6 +87,7 @@ bool consume_for(char *op);
 bool consume_sizeof(char *op);
 bool consume_break();
 bool consume_continue();
+bool consume_typedef();
 
 void enter_scope(void);
 void leave_scope(void);
@@ -224,8 +225,10 @@ Node *top(){
 
         // identityトークンをを取得する
         Token *token_ident = consume_ident();
+	
+	// 変数名、関数名, 列挙子定数は、typedefのエイリアスと衝突してはいけない。
         if (!check_globl_ident(token_ident)){
-            error("typedef, 変数定義が重複しています。");
+            error("typedef, 変数, 関数名定義が重複しています。");
         }
 
         // 配列型だった場合
@@ -257,16 +260,42 @@ Node *top(){
             // トークン, Type
             return globl_var(type_token, token_ident, head.to_ptr);
         }
+    } else if (consume_typedef()) {
+	    // typedef int my_int;
+	    // typedef struct Name Name;
+	    TypeRegistry *tr = find_type_registry(token);
+	    if (!tr){
+		    error("型名が存在しません");
+	    }
+	    token = token->next; // 型キーワードを消費
+
+	    // 新しい型名として登録する
+	    Token *token_ident = consume_ident();
+	    TypeRegistry *current_type_registry = calloc(1, sizeof(TypeRegistry));
+
+	    current_type_registry->name = token_ident->str;
+	    current_type_registry->name_len = token_ident->len;
+	    current_type_registry->type = tr->type;
+	    TypeRegistry *tmp_tr = type_registry;
+	    type_registry = current_type_registry;
+	    type_registry->next = tmp_tr;
+
+	    expect(";");
+	    return NULL;
     }
 }
 
+// 関数名、グローバル変数名、型名に衝突しないかのチェック
 bool check_globl_ident(Token *tok){
-    GVar *gvar = find_gvar(tok);
-    if (gvar) {
-    }
-    tok->str;
+    // グローバル変数名
+    if (find_gvar(tok)) return false;
+    if (find_func(tok)) return false;
+    if (find_type_registry(tok)) return false;
+
     return true;
 }
+
+
 // int a;
 Node *globl_var(Token *type_token, Token *indent_token, Type *type){
     Node *gval = parse_globl_declaration(type_token, indent_token, type);
@@ -854,6 +883,15 @@ bool consume_continue(){
     token = token->next;
     return true;
 }
+
+bool consume_typedef(){
+	if (token->kind != TK_TYPEDEF)
+		return false;
+
+	token = token->next;
+	return true;
+}
+
 // 次のトークンが期待している記号の時には、トークンを一つ読み進める。
 // それ以外の場合にはエラーを報告する。
 void expect(char *op){
@@ -876,9 +914,11 @@ int expect_number() {
 Token *type_keyword(){
     if (token->kind == TK_INT_TYPE || token->kind == TK_CHAR_TYPE || token->kind == TK_STRUCT || token->kind == TK_VOID ){
         return token;
-    } else {
-        return NULL;
     }
+    if (token->kind == TK_IDENT && find_type_registry(token)){
+        return token;
+    }
+    return NULL;
 }
 
 
@@ -918,12 +958,13 @@ Node *parse_globl_declaration(Token *type_tok, Token *ident_tok, Type *type){
 }
 
 Node *parse_declaration(){
-    TypeKind ident_type = token->kind == TK_INT_TYPE ? TY_INT : TY_CHAR;
-    if (token->kind == TK_VOID){
-        ident_type = TY_VOID;
-        if (memcmp(token->next->str, "*", 1)){
-            error("voidは不完全型です");
-        }
+    TypeRegistry *tr = find_type_registry(token);
+    if (!tr){
+        error("型がありません");
+    }
+    TypeKind ident_type = tr->type->kind;
+    if (ident_type == TY_VOID && memcmp(token->next->str, "*", 1)){
+        error("voidは不完全型です");
     }
 
 	token = token->next; // 型キーワードを消費
@@ -937,8 +978,6 @@ Node *parse_declaration(){
         cur_type->to_ptr = calloc(1, sizeof(Type));
         cur_type = cur_type->to_ptr;
     }
-    // cur_type:ptr => cur_type:引数で受け取った
-    // identのtypeの種類によって、Nodeに紐づけるType構造体のsizeを切り替える。int=4, char=1, ptr=8;
     cur_type->kind = ident_type;
 
 	Token *ident_tok = consume_ident();
@@ -955,37 +994,24 @@ Node *parse_declaration(){
 
     // 配列の場合と、普通の変数の場合でサイズをかえる
     if (consume("[")){
-        int size;
-        if (ident_type == TY_INT){
-            size = 4;
-        } else if (ident_type == TY_CHAR){
-            size = 1;
-        }
-
+        int base_size = tr->type->size;
         int index = token->val;
         if (!index){
             error("配列の要素を指定してください");
         }
-        // 数字を読んだのでトークンを進める.
         token = token->next;
 
-        cur_type->size = size;
+        cur_type->size = base_size;
         Type *array_type = calloc(1, sizeof(Type));
         array_type->kind = TY_ARRAY;
         array_type->to_ptr = cur_type;
-        array_type->array_size = size;
-        array_type->size = size * index;
+        array_type->array_size = base_size;
+        array_type->size = base_size * index;
         head_type = array_type;
 
         expect("]");
     } else {
-        if (ident_type == TY_INT){
-            cur_type->size = 4;
-        } else if (ident_type == TY_CHAR){
-            cur_type->size = 1;
-        } else if (ident_type == TY_VOID){
-            cur_type->size = 1;
-        }
+        cur_type->size = tr->type->size;
     }
 
 	// localsに登録
@@ -1105,7 +1131,7 @@ Token *consume_ident(){
 
 TypeRegistry *find_type_registry(Token *tk){
     for(TypeRegistry *cur = type_registry; cur; cur = cur->next){
-        if (memcmp(tk->str, cur->name, tk->len) == 0)
+        if (tk->len == cur->name_len && memcmp(tk->str, cur->name, tk->len) == 0)
             return cur;
     }
     return NULL;
