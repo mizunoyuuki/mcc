@@ -232,9 +232,20 @@ Node *top(){
         }
 
         // 配列型だった場合
-        Type *last_t = calloc(1, sizeof(Type));
-        last_t->kind = ty_regi->type->kind;
-        last_t->size = ty_regi->type->size;
+        Type *last_t;
+        if (ty_regi->type->kind == TY_STRUCT) {
+            // struct型はmemberを保持するためty_regi->typeを直接使う
+            if (head.to_ptr != NULL) {
+                last_t = calloc(1, sizeof(Type));
+                *last_t = *(ty_regi->type); // ポインタの末端にstruct型をコピー
+            } else {
+                last_t = ty_regi->type;     // 非ポインタはそのまま使う
+            }
+        } else {
+            last_t = calloc(1, sizeof(Type));
+            last_t->kind = ty_regi->type->kind;
+            last_t->size = ty_regi->type->size;
+        }
         cur->to_ptr = last_t;
 
         if (consume("[")){
@@ -263,25 +274,51 @@ Node *top(){
     } else if (consume_typedef()) {
 	    // typedef int my_int;
 	    // typedef struct Name Name;
-	    TypeRegistry *tr = find_type_registry(token);
-	    if (!tr){
-		    error("型名が存在しません");
+	    if (token->kind == TK_STRUCT){
+		    // struct を消費
+		    token = token->next;
+		    TagEntry *te = find_tag_entry(token);
+		    if (!te){
+			    error("tag名が存在しません。");
+		    }
+		    token = token->next; // タグ名を消費
+
+		    // エイリアス名を読む
+		    Token *alias = consume_ident();
+
+		    TypeRegistry *tr = calloc(1, sizeof(TypeRegistry));
+		    tr->name = alias->str;
+		    tr->name_len = alias->len;
+		    tr->type = te->type;
+		    TypeRegistry *tmp_tr = type_registry;
+		    type_registry = tr;
+		    type_registry->next = tmp_tr;
+
+		    expect(";");
+
+		    return NULL;
+
+	    } else {
+		    TypeRegistry *tr = find_type_registry(token);
+		    if (!tr){
+			    error("型名が存在しません");
+		    }
+	            token = token->next; // 型キーワードを消費
+
+	            // 新しい型名として登録する
+	            Token *token_ident = consume_ident();
+	            TypeRegistry *current_type_registry = calloc(1, sizeof(TypeRegistry));
+
+	            current_type_registry->name = token_ident->str;
+	            current_type_registry->name_len = token_ident->len;
+	            current_type_registry->type = tr->type;
+	            TypeRegistry *tmp_tr = type_registry;
+	            type_registry = current_type_registry;
+	            type_registry->next = tmp_tr;
+
+	            expect(";");
+	            return NULL;
 	    }
-	    token = token->next; // 型キーワードを消費
-
-	    // 新しい型名として登録する
-	    Token *token_ident = consume_ident();
-	    TypeRegistry *current_type_registry = calloc(1, sizeof(TypeRegistry));
-
-	    current_type_registry->name = token_ident->str;
-	    current_type_registry->name_len = token_ident->len;
-	    current_type_registry->type = tr->type;
-	    TypeRegistry *tmp_tr = type_registry;
-	    type_registry = current_type_registry;
-	    type_registry->next = tmp_tr;
-
-	    expect(";");
-	    return NULL;
     }
 }
 
@@ -744,6 +781,17 @@ Node *primary(){
                 expect("]");
                 return new_node(ND_DEREF, new_node(ND_ADD, node, index), NULL);
             }
+            for(;;){
+                if (consume("->")){
+                    Node *n = new_node(ND_DEREF, node, NULL);
+                    n->type = node->type->to_ptr;
+                    node = pile_member(n);
+                } else if (consume(".")) {
+                    node = pile_member(node);
+                } else {
+                    break;
+                }
+            }
         } else {
             error("未定義の変数です。");
         }
@@ -978,7 +1026,17 @@ Node *parse_declaration(){
         cur_type->to_ptr = calloc(1, sizeof(Type));
         cur_type = cur_type->to_ptr;
     }
-    cur_type->kind = ident_type;
+    if (ident_type == TY_STRUCT) {
+        // struct型はmemberを保持するためtr->typeを直接使う
+        if (head_type->kind == TY_PTR) {
+            *cur_type = *(tr->type); // ポインタの末端にstruct型をコピー
+        } else {
+            head_type = tr->type;    // 非ポインタはそのまま使う
+            cur_type = head_type;
+        }
+    } else {
+        cur_type->kind = ident_type;
+    }
 
 	Token *ident_tok = consume_ident();
 	if (!ident_tok){
