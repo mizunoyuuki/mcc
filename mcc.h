@@ -14,8 +14,6 @@ typedef enum {
 	TK_RESERVED,  // 記号
 	TK_IDENT,     // 識別子
 	TK_RETURN,    // returnキーワード
-	TK_LOGIAND,   // &&
-	TK_LOGIOR,    // || 
 	TK_IF,        // if
 	TK_ELSE,      // else
 	TK_WHILE,     // while

@@ -173,13 +173,13 @@ Token *tokenize(char *p){
         }
 
 	if (is_logiand(p)){
-		cur = new_token(TK_LOGIAND, cur, p, 2);
+		cur = new_token(TK_RESERVED, cur, p, 2);
 		p += 2;
 		continue;
 	}
 
 	if (is_logior(p)){
-		cur = new_token(TK_LOGIOR, cur, p, 2);
+		cur = new_token(TK_RESERVED, cur, p, 2);
 		p += 2;
 		continue;
 	}
