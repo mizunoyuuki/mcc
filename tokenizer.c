@@ -94,9 +94,17 @@ bool is_block_comment_end(char *p){
     return (*p == '*' && *(p + 1) == '/');
 }
 
+bool is_logiand(char *p){
+	return (memcmp("&&", p, 2) == 0 && !is_alphabet(*(p + 2)));
+}
+
+bool is_logior(char *p){
+	return memcmp("||", p, 2) == 0 && !is_alphabet(*(p + 2));
+}
+
 // 入力文字列pをトークナイズしてそれを返す。
 // 現在の文法
-//
+// 
 // program       = funcdef*
 // fucdef        = ident "(" params? ")" "{" stmt* "}"
 // params        = ident ( "," ident )*
@@ -108,6 +116,8 @@ bool is_block_comment_end(char *p){
 //               | "while" "(" expr ")" stmt
 // expr          = assign
 // assign        = equaity ( "=" assign )?
+// logior
+// logiand
 // equality      = relational ( "==" relational | "!=" relational )*
 // relational    = add ( "<" add | "<=" add | ">" add | ">=" add )*
 // add           = mul ( "+" mul | "-" mul )*
@@ -162,6 +172,17 @@ Token *tokenize(char *p){
             continue;
         }
 
+	if (is_logiand(p)){
+		cur = new_token(TK_LOGIAND, cur, p, 2);
+		p += 2;
+		continue;
+	}
+
+	if (is_logior(p)){
+		cur = new_token(TK_LOGIOR, cur, p, 2);
+		p += 2;
+		continue;
+	}
 		    if (*p == '+' || *p == '-' || *p == '*' || *p == '/' || *p == '(' || *p == ')' || *p == ';' || *p == ',' || *p == '&' ||  *p == '[' || *p == ']' ){
 			      cur = new_token(TK_RESERVED, cur, p++, 1);
 			      continue;

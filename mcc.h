@@ -14,21 +14,23 @@ typedef enum {
 	TK_RESERVED,  // 記号
 	TK_IDENT,     // 識別子
 	TK_RETURN,    // returnキーワード
-  TK_IF,        // if
+	TK_LOGIAND,   // &&
+	TK_LOGIOR,    // || 
+	TK_IF,        // if
 	TK_ELSE,      // else
 	TK_WHILE,     // while
-  TK_FOR,       // for
-    TK_BREAK,     // break
-    TK_CONTINUE,  // continue
+        TK_FOR,       // for
+    	TK_BREAK,     // break
+    	TK_CONTINUE,  // continue
 	TK_NUM,       // 整数トークン
-  TK_INT_TYPE,  // int型
-  TK_CHAR_TYPE, // char型
+  	TK_INT_TYPE,  // int型
+  	TK_CHAR_TYPE, // char型
 	TK_STRUCT,    // struct型
-  TK_VOID,      // void型
-  TK_CHAR_CONST,// 文字定数
+  	TK_VOID,      // void型
+  	TK_CHAR_CONST,// 文字定数
 	TK_STRING,    // 文字列
 	TK_SIZEOF,    // sizeof演算子
-    TK_TYPEDEF,   // typedef演算子
+    	TK_TYPEDEF,   // typedef演算子
 	TK_EOF        // 入力の終わりを表すトークン
 } TokenKind;
 
