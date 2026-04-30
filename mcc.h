@@ -58,7 +58,7 @@ typedef enum {
 	TY_INT,
 	TY_CHAR,
 	TY_PTR,
-  TY_VOID,
+  	TY_VOID,
 	TY_ARRAY,
 	TY_STRUCT,
 } TypeKind;
@@ -127,23 +127,25 @@ typedef enum {
 	ND_GT,       // >
 	ND_GE,       // >=
 	ND_NOT,      // !
+	ND_LOGIOR,   // ||
+	ND_LOGIAND,  // &&
 	ND_ASSIGN,   // =(代入)
 	ND_LVAR,     // ローカル変
 	ND_MEMBER,   // 構造体の. ->のメンバ参照
-  ND_RETURN,   // return
-  ND_IF,       // if
+  	ND_RETURN,   // return
+  	ND_IF,       // if
 	ND_WHILE,    // while
 	ND_FOR,      // for
-    ND_SWITCH,   // switch
+    	ND_SWITCH,   // switch
 	ND_BLOCK,    // {} ブロック
-    ND_BREAK,    // break
-    ND_CONTINUE, // continue
+    	ND_BREAK,    // break
+   	ND_CONTINUE, // continue
 	ND_FUNCALL,  // 関数呼び出し
 	ND_FUNCDEF,  // 関数の定義
 	ND_ADDR,     // アドレス参照
 	ND_DEREF,    // アドレスデリファレンス
 	ND_SIZEOF,   // sizeof演算子
-    ND_TYPRDEF,  // typedef演算子
+    	ND_TYPRDEF,  // typedef演算子
 	ND_STRING,   // 文字列リテラル
 	ND_GVAR,     // 外部変数
 	ND_NUM,      // 整数

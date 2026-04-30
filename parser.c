@@ -50,6 +50,8 @@ Node *funcdef(Token*, Type*);
 Node *stmt();
 Node *expr();
 Node *assign();
+Node *logior();
+Node *logiand();
 Node *equality();
 Node *relational();
 Node *add();
@@ -502,11 +504,11 @@ Node *stmt(){
 		expect(")");
 
 		enter_scope();
-        enter_loop_block(ND_WHILE);
-        node->lb = loop_block;
+        	enter_loop_block(ND_WHILE);
+        	node->lb = loop_block;
 		node->rhs = stmt();
 		leave_scope();
-        leave_loop_block();
+        	leave_loop_block();
 
 		return node;
 	}
@@ -518,7 +520,7 @@ Node *stmt(){
 		expect("(");
 
 		enter_scope();
-        enter_loop_block(ND_FOR);
+        	enter_loop_block(ND_FOR);
 		if (!consume(";")){
 			if (type_keyword()){
                 if (token->kind == TK_STRUCT){
@@ -542,10 +544,10 @@ Node *stmt(){
 			expect(")");
 		}
         
-        node->lb = loop_block;
+        	node->lb = loop_block;
 		node->fthen = stmt();
 		leave_scope();
-        leave_loop_block();
+        	leave_loop_block();
 		return node;
 	}
 
@@ -561,12 +563,36 @@ Node *expr(){
 }
 
 Node *assign(){
-	Node *node = equality();
+	Node *node = logior();
 
 	if (consume("=")){
 		node = new_node(ND_ASSIGN, node, assign());
 	}
 	return node;
+}
+
+Node *logior(){
+	Node *node = logiand();
+
+	for(;;){
+		if(consume("||")){
+			node = new_node(ND_LOGIOR, node, logiand());
+		} else {
+			return node;
+		}
+	}
+}
+
+//
+Node *logiand(){
+	Node *node = equality();
+	for(;;){
+		if (consume("&&")){
+			node = new_node(ND_LOGIAND, node, equality());
+		} else {
+			return node;
+		}
+	}
 }
 
 

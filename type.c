@@ -180,6 +180,8 @@ void add_type(Node *node){
             }
             break;
 
+	case ND_LOGIOR:
+	case ND_LOGIAND:
         case ND_EQ:
         case ND_NE:
         case ND_LT:
